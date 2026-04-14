@@ -1,0 +1,2888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ElectroLearn — Adaptive Electronics Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  /* ============================================
+     ELECTROLEARN — GLOBAL STYLES & CSS VARIABLES
+     ============================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --bg: #0a0e1a;
+    --bg2: #111827;
+    --bg3: #1a2235;
+    --card: #131d2e;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f4ff;
+    --text2: #8899bb;
+    --text3: #4a5568;
+    --green: #00e676;
+    --yellow: #ffd600;
+    --red: #ff1744;
+    --purple: #d500f9;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --glow: 0 0 20px rgba(0,229,255,0.3);
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'DM Sans', sans-serif;
+    --sidebar: 260px;
+  }
+
+  [data-theme="light"] {
+    --bg: #f0f4ff;
+    --bg2: #e8edf8;
+    --bg3: #dde4f5;
+    --card: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --text: #0a1128;
+    --text2: #4a5568;
+    --text3: #8899bb;
+    --shadow: 0 8px 32px rgba(0,0,0,0.1);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    overflow-x: hidden;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* ============================================
+     ANIMATIONS
+     ============================================ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.4); }
+    50%       { box-shadow: 0 0 0 12px rgba(0,229,255,0); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { filter: drop-shadow(0 0 4px var(--accent)); }
+    50%       { filter: drop-shadow(0 0 16px var(--accent)); }
+  }
+  @keyframes streak {
+    0%   { transform: translateX(-100%) skewX(-15deg); }
+    100% { transform: translateX(400%) skewX(-15deg); }
+  }
+
+  .anim-fadeup { animation: fadeUp 0.5s ease forwards; }
+  .anim-fadein { animation: fadeIn 0.4s ease forwards; }
+  .anim-slide  { animation: slideIn 0.35s ease forwards; }
+
+  /* ============================================
+     LAYOUT
+     ============================================ */
+  .app-shell {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar);
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    animation: glow-pulse 3s ease infinite;
+  }
+  .logo-text {
+    font-family: var(--font-head);
+    font-size: 18px; font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .logo-text span { color: var(--accent); }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 12px 8px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text2);
+    text-decoration: none;
+    position: relative;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active {
+    background: rgba(0,229,255,0.1);
+    color: var(--accent);
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute; left: 0; top: 20%; bottom: 20%;
+    width: 3px; border-radius: 2px;
+    background: var(--accent);
+  }
+  .nav-icon { font-size: 18px; width: 20px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  .sidebar-footer {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg3);
+    cursor: pointer;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    color: var(--bg);
+    flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-level { font-size: 11px; color: var(--text2); }
+
+  /* MAIN CONTENT */
+  .main-content {
+    margin-left: var(--sidebar);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    height: 64px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 28px;
+    gap: 16px;
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(12px);
+  }
+  .topbar-title {
+    font-family: var(--font-head);
+    font-size: 18px; font-weight: 700;
+    flex: 1;
+  }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  .page-content {
+    flex: 1;
+    padding: 28px;
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  /* ============================================
+     CARDS & COMPONENTS
+     ============================================ */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .card-sm { padding: 16px; }
+  .card-accent { border-color: rgba(0,229,255,0.3); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 4px 20px rgba(0,229,255,0.4); }
+  .btn-secondary {
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--bg2); border-color: var(--accent); }
+  .btn-ghost { background: transparent; color: var(--text2); }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-lg { padding: 14px 28px; font-size: 16px; border-radius: var(--radius); }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-icon { padding: 10px; border-radius: var(--radius-sm); background: var(--bg3); border: 1px solid var(--border); cursor: pointer; font-size: 18px; transition: all 0.2s; }
+  .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    background: var(--bg3);
+    border-radius: 100px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    transition: width 0.8s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0; left: -100%;
+    width: 60%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: streak 2s ease infinite;
+  }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-green  { background: rgba(0,230,118,0.15); color: var(--green); }
+  .badge-yellow { background: rgba(255,214,0,0.15); color: var(--yellow); }
+  .badge-red    { background: rgba(255,23,68,0.15); color: var(--red); }
+  .badge-accent { background: rgba(0,229,255,0.15); color: var(--accent); }
+  .badge-purple { background: rgba(213,0,249,0.15); color: var(--purple); }
+  .badge-orange { background: rgba(255,107,53,0.15); color: var(--accent2); }
+
+  /* INPUT */
+  .input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
+  .input::placeholder { color: var(--text3); }
+
+  .label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .form-group { margin-bottom: 20px; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* TAG */
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 4px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 12px; color: var(--text2);
+  }
+
+  /* TOOLTIP */
+  .tip {
+    font-size: 13px; color: var(--text2); line-height: 1.6;
+  }
+
+  /* SECTION */
+  .section { margin-bottom: 32px; }
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 20px; font-weight: 700;
+  }
+
+  /* STAT CARD */
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 8px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+  }
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 32px; font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label { font-size: 13px; color: var(--text2); }
+  .stat-icon {
+    position: absolute; top: 16px; right: 16px;
+    font-size: 28px; opacity: 0.2;
+  }
+
+  /* QUIZ */
+  .quiz-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    background: var(--bg3);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .quiz-option:hover { border-color: var(--accent); background: rgba(0,229,255,0.05); }
+  .quiz-option.correct { border-color: var(--green); background: rgba(0,230,118,0.1); color: var(--green); }
+  .quiz-option.wrong   { border-color: var(--red);   background: rgba(255,23,68,0.1);  color: var(--red); }
+  .quiz-option.selected { border-color: var(--accent); background: rgba(0,229,255,0.08); }
+
+  /* LEADERBOARD */
+  .rank-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+  }
+  .rank-row:hover { background: var(--bg3); }
+  .rank-row.me { background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.2); }
+  .rank-num {
+    font-family: var(--font-mono);
+    font-size: 13px; font-weight: 700;
+    color: var(--text3);
+    width: 28px; text-align: center;
+  }
+  .rank-num.gold   { color: #ffd700; }
+  .rank-num.silver { color: #c0c0c0; }
+  .rank-num.bronze { color: #cd7f32; }
+
+  /* DISCUSSION */
+  .post-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .post-card:hover { border-color: rgba(0,229,255,0.2); }
+  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .post-meta { font-size: 12px; color: var(--text3); }
+  .post-actions { display: flex; gap: 12px; margin-top: 12px; }
+  .post-action-btn {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text2);
+    background: none; border: none; cursor: pointer;
+    padding: 4px 8px; border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .post-action-btn:hover { color: var(--accent); background: rgba(0,229,255,0.06); }
+
+  /* PROJECT CARD */
+  .project-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .project-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .project-thumb {
+    height: 160px;
+    background: linear-gradient(135deg, var(--bg3), var(--bg2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px;
+    position: relative; overflow: hidden;
+  }
+  .project-thumb::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.5));
+  }
+  .project-body { padding: 16px; }
+
+  /* TOOL CARD */
+  .tool-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .tool-card:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,229,255,0.1); }
+  .tool-thumb {
+    height: 120px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 56px;
+    background: var(--bg3);
+  }
+  .tool-body { padding: 16px; }
+
+  /* AUTH PAGE */
+  .auth-page {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(0,229,255,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(213,0,249,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .auth-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; opacity: 0.4;
+  }
+  .auth-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px;
+    width: 100%; max-width: 460px;
+    position: relative; z-index: 1;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+    animation: fadeUp 0.5s ease forwards;
+  }
+  .auth-logo {
+    text-align: center; margin-bottom: 32px;
+  }
+  .auth-logo-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 16px;
+    animation: pulse 2s infinite;
+  }
+  .auth-title {
+    font-family: var(--font-head);
+    font-size: 28px; font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .auth-sub { font-size: 14px; color: var(--text2); }
+  .auth-switch { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text2); }
+  .auth-switch span { color: var(--accent); cursor: pointer; font-weight: 600; }
+  .auth-switch span:hover { text-decoration: underline; }
+
+  /* ONBOARDING */
+  .onboard-step {
+    animation: fadeUp 0.4s ease forwards;
+  }
+  .choice-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px; margin-top: 12px;
+  }
+  .choice-btn {
+    padding: 16px 12px;
+    background: var(--bg3);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer; text-align: center;
+    transition: all 0.2s; font-size: 14px; font-weight: 500;
+    color: var(--text); font-family: var(--font-body);
+  }
+  .choice-btn:hover  { border-color: var(--accent); }
+  .choice-btn.active { border-color: var(--accent); background: rgba(0,229,255,0.1); color: var(--accent); }
+  .choice-icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* SESSION PAGE */
+  .session-header {
+    background: linear-gradient(135deg, var(--bg2), var(--bg3));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .session-header::before {
+    content: '';
+    position: absolute; top: -50%; right: -10%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,229,255,0.1), transparent 70%);
+    border-radius: 50%;
+  }
+  .session-number {
+    font-family: var(--font-mono);
+    font-size: 12px; color: var(--accent);
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .session-title {
+    font-family: var(--font-head);
+    font-size: 28px; font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  /* CONCEPT BOX */
+  .concept-box {
+    background: var(--bg3);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 20px;
+    margin: 20px 0;
+    font-size: 15px; line-height: 1.7;
+  }
+  .formula-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--accent);
+    text-align: center;
+    margin: 16px 0;
+    letter-spacing: 1px;
+  }
+  .activity-box {
+    background: rgba(0,230,118,0.05);
+    border: 1px solid rgba(0,230,118,0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .activity-title {
+    font-family: var(--font-head);
+    font-size: 15px; font-weight: 700;
+    color: var(--green);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* THEME PICKER */
+  .color-swatch {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .color-swatch.active { border-color: var(--text); transform: scale(1.15); }
+  .color-swatch:hover  { transform: scale(1.1); }
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* LOADING */
+  .loader {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s ease;
+    padding: 20px;
+  }
+  .modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    width: 100%; max-width: 520px;
+    max-height: 90vh; overflow-y: auto;
+    animation: fadeUp 0.3s ease;
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; }
+
+  /* NOTIFICATION */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: var(--shadow);
+    z-index: 300;
+    animation: fadeUp 0.3s ease;
+    min-width: 280px;
+    font-size: 14px;
+  }
+  .toast.success { border-color: var(--green); }
+  .toast.error   { border-color: var(--red); }
+
+  /* STREAK FIRE */
+  .streak-fire {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,107,53,0.15);
+    color: var(--accent2);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 14px; font-weight: 700;
+    font-family: var(--font-mono);
+    border: 1px solid rgba(255,107,53,0.3);
+  }
+
+  /* CIRCUIT VISUAL */
+  .circuit-bg {
+    position: relative;
+    background: var(--bg3);
+    border-radius: var(--radius);
+    padding: 32px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .circuit-bg::before {
+    content: '⚡';
+    position: absolute;
+    font-size: 120px; opacity: 0.04;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; background: var(--bg3); padding: 4px; border-radius: var(--radius-sm); margin-bottom: 24px; }
+  .tab {
+    flex: 1; padding: 8px 16px; border: none; background: none;
+    border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; color: var(--text2); font-family: var(--font-body);
+    transition: all 0.2s;
+  }
+  .tab.active { background: var(--card); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text2);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-title { font-family: var(--font-head); font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+  .empty-sub { font-size: 14px; }
+
+  /* MOBILE TOPBAR TOGGLE */
+  .mobile-toggle { display: none; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .page-content { padding: 16px; }
+    .mobile-toggle { display: flex; }
+    .auth-box { padding: 32px 24px; }
+  }
+
+  /* CHIP */
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 12px; color: var(--text2);
+  }
+
+  /* STEP INDICATOR */
+  .steps { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; }
+  .step-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    font-family: var(--font-mono);
+    background: var(--bg3); color: var(--text3);
+    border: 2px solid var(--border);
+    transition: all 0.3s;
+  }
+  .step-dot.done  { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .step-dot.active{ border-color: var(--accent); color: var(--accent); }
+  .step-line { flex: 1; height: 2px; background: var(--border); }
+  .step-line.done { background: var(--accent); }
+
+  /* CATEGORY PILLS */
+  .cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .cat-pill {
+    padding: 6px 16px;
+    border-radius: 100px; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text2);
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .cat-pill.active { border-color: var(--accent); background: rgba(0,229,255,0.1); color: var(--accent); }
+
+  /* SCROLLABLE HORIZONTAL */
+  .h-scroll { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; }
+  .h-scroll::-webkit-scrollbar { height: 4px; }
+  .h-scroll > * { flex-shrink: 0; }
+
+  /* TYPING INDICATOR */
+  .typing span {
+    display: inline-block;
+    width: 6px; height: 6px; background: var(--text3);
+    border-radius: 50%; margin: 0 2px;
+  }
+  .typing span:nth-child(1) { animation: bounce 1s 0s infinite; }
+  .typing span:nth-child(2) { animation: bounce 1s 0.2s infinite; }
+  .typing span:nth-child(3) { animation: bounce 1s 0.4s infinite; }
+
+  /* HELP TAG */
+  .help-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--text3);
+    font-family: var(--font-mono);
+  }
+
+  /* ============================================
+     SPECIFIC COMPONENT STYLES
+     ============================================ */
+  .dashboard-welcome {
+    background: linear-gradient(135deg, rgba(0,229,255,0.1) 0%, rgba(213,0,249,0.06) 100%);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    position: relative; overflow: hidden;
+  }
+  .dashboard-welcome::before {
+    content: '⚡';
+    position: absolute; right: -20px; top: -20px;
+    font-size: 120px; opacity: 0.05;
+    transform: rotate(15deg);
+  }
+  .welcome-name {
+    font-family: var(--font-head);
+    font-size: 26px; font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .welcome-sub { font-size: 14px; color: var(--text2); }
+
+  .session-list-item {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .session-list-item::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: rgba(0,229,255,0.05);
+    transition: width 0.3s;
+  }
+  .session-list-item:hover::before { width: 100%; }
+  .session-list-item:hover { border-color: rgba(0,229,255,0.2); }
+  .session-list-item.completed { opacity: 0.7; }
+  .session-list-item.locked { opacity: 0.4; cursor: not-allowed; }
+  .session-num {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+    background: var(--bg3); color: var(--text2);
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  .session-num.done { background: rgba(0,230,118,0.15); color: var(--green); border-color: var(--green); }
+  .session-num.active { background: rgba(0,229,255,0.15); color: var(--accent); border-color: var(--accent); animation: pulse 2s infinite; }
+  .session-info { flex: 1; min-width: 0; }
+  .session-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .session-meta { font-size: 12px; color: var(--text3); display: flex; gap: 12px; }
+
+  /* CIRCULAR PROGRESS */
+  .circle-progress { position: relative; display: inline-flex; }
+  .circle-inner {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .circle-val { font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .circle-unit { font-size: 11px; color: var(--text3); }
+
+  /* XP BAR */
+  .xp-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px;
+  }
+  .xp-label { font-size: 12px; color: var(--text2); min-width: 60px; }
+  .xp-bar-wrap { flex: 1; }
+  .xp-val { font-family: var(--font-mono); font-size: 12px; color: var(--accent); min-width: 50px; text-align: right; }
+
+  /* MINI CIRCUIT SVG PLACEHOLDER */
+  .circuit-svg {
+    width: 100%;
+    height: 140px;
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px;
+    border: 1px dashed var(--border);
+  }
+
+  /* CONFETTI OVERLAY */
+  .confetti-overlay {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    animation: fadeIn 0.3s ease;
+  }
+  .confetti-text {
+    font-family: var(--font-head);
+    font-size: 48px; font-weight: 800;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(0,229,255,0.6);
+    animation: bounce 0.5s ease infinite;
+  }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useContext, createContext, useRef, useCallback } = React;
+
+// ============================================================
+//  DATABASE SCHEMA (in-memory / localStorage simulation)
+// ============================================================
+// User: { id, name, email, password, age, level, goal, xp, streak, completedSessions, quizScores, theme, createdAt }
+// Session: { id, number, title, topic, difficulty, estimatedTime, concept, formula, activity, quiz:{question,options,answer}, xpReward }
+// Post: { id, userId, userName, roomId, content, upvotes, replies:[], createdAt }
+// Project: { id, title, difficulty, components, description, steps, emoji }
+// Tool: { id, name, emoji, description, safetyTips, experiment }
+
+// ============================================================
+//  ADAPTIVE COURSE ENGINE — 101 Sessions Generator
+// ============================================================
+const TOPICS = [
+  { cat: "Basic Electricity", sessions: 15 },
+  { cat: "Components",        sessions: 18 },
+  { cat: "Circuits",          sessions: 20 },
+  { cat: "Sensors",           sessions: 15 },
+  { cat: "Microcontrollers",  sessions: 18 },
+  { cat: "Projects",          sessions: 15 },
+];
+
+const SESSION_DATA = [
+  // Basic Electricity (1-15)
+  { n:1,  cat:"Basic Electricity", title:"What is Electricity?",           diff:"Beginner", time:15, emoji:"⚡",
+    concept:"Electricity is the flow of electric charge through a conductor. Like water flowing through a pipe, electrons flow through wires. This flow of electrons is called electric current. Everything around us uses electricity—from a tiny LED to massive industrial machines.",
+    formula:"Current (I) = Charge (Q) / Time (t)",
+    activity:"Observe your home appliances. List 5 that use electricity and estimate their power usage.",
+    quiz:{ q:"What carries electric current in a wire?", opts:["Protons","Electrons","Neutrons","Photons"], ans:1 }},
+  { n:2,  cat:"Basic Electricity", title:"Voltage, Current & Resistance",  diff:"Beginner", time:20, emoji:"🔋",
+    concept:"Voltage (V) is the electrical 'pressure' that pushes electrons. Current (I) is how many electrons flow per second. Resistance (R) is what opposes the flow. Together, they form the foundation of all electronics through Ohm's Law.",
+    formula:"V = I × R  (Ohm's Law)",
+    activity:"Using Ohm's Law, calculate current if V=12V and R=100Ω. Answer: I = 0.12A = 120mA",
+    quiz:{ q:"If voltage doubles and resistance stays the same, current will:", opts:["Halve","Stay same","Double","Quadruple"], ans:2 }},
+  { n:3,  cat:"Basic Electricity", title:"AC vs DC Power",                  diff:"Beginner", time:20, emoji:"🔌",
+    concept:"Direct Current (DC) flows in one direction only—like from a battery. Alternating Current (AC) reverses direction periodically—like wall outlets. Batteries, phones, and circuits use DC. Power grids use AC because it transmits efficiently over long distances.",
+    formula:"AC frequency (f) = 50 Hz or 60 Hz (country dependent)",
+    activity:"Find the DC adapter of your phone charger. Note the input (AC) and output (DC) voltages printed on it.",
+    quiz:{ q:"Which type of current do batteries produce?", opts:["AC","DC","Both","Neither"], ans:1 }},
+  { n:4,  cat:"Basic Electricity", title:"Electric Power & Energy",          diff:"Beginner", time:20, emoji:"💡",
+    concept:"Power is the rate at which energy is used or produced. A 60W bulb uses 60 joules of energy every second. Energy consumed depends on how long a device runs. This is what your electricity bill measures—in kilowatt-hours (kWh).",
+    formula:"Power (P) = Voltage (V) × Current (I) = I² × R",
+    activity:"Calculate the cost of running a 100W bulb for 24 hours if electricity costs ₹8/kWh.",
+    quiz:{ q:"Unit of electrical power is:", opts:["Volt","Ampere","Watt","Joule"], ans:2 }},
+  { n:5,  cat:"Basic Electricity", title:"Series Circuits",                  diff:"Beginner", time:25, emoji:"➰",
+    concept:"In a series circuit, components are connected end-to-end in a single path. The same current flows through all components. If one component fails, the entire circuit breaks. Total resistance is the sum of individual resistances.",
+    formula:"R_total = R1 + R2 + R3 + ...",
+    activity:"Draw a series circuit with 3 LEDs and one battery. Predict what happens when one LED is removed.",
+    quiz:{ q:"In a series circuit, if one bulb goes out, the others:", opts:["Stay on","Go out too","Burn brighter","Flicker"], ans:1 }},
+  { n:6,  cat:"Basic Electricity", title:"Parallel Circuits",                diff:"Beginner", time:25, emoji:"⚙️",
+    concept:"In a parallel circuit, components share the same two terminals (voltage). Each branch gets the full voltage. If one path breaks, current continues through other paths. This is how your home wiring works!",
+    formula:"1/R_total = 1/R1 + 1/R2 + 1/R3 + ...",
+    activity:"Design a parallel circuit with 3 LEDs. Compare brightness with the series circuit from Session 5.",
+    quiz:{ q:"Home electrical outlets are wired in:", opts:["Series","Parallel","Both","Neither"], ans:1 }},
+  { n:7,  cat:"Basic Electricity", title:"Short Circuits & Safety",          diff:"Beginner", time:20, emoji:"⚠️",
+    concept:"A short circuit occurs when current takes an unintended low-resistance path, bypassing the normal circuit. This causes excessive current flow, heat, and potential fires. Fuses and circuit breakers protect against this by interrupting the circuit when current exceeds safe levels.",
+    formula:"P_heat = I² × R (Short circuit: R→0, so I→∞)",
+    activity:"Research 3 short circuit accidents. Write what caused them and how they could have been prevented.",
+    quiz:{ q:"What device protects a circuit from excess current?", opts:["Resistor","Capacitor","Fuse","Inductor"], ans:2 }},
+  { n:8,  cat:"Basic Electricity", title:"Conductors & Insulators",          diff:"Beginner", time:15, emoji:"🔗",
+    concept:"Conductors allow electricity to flow freely—they have free electrons. Metals like copper and aluminum are excellent conductors. Insulators resist current flow—rubber, plastic, glass. Semiconductors like silicon have properties between both.",
+    formula:"Conductivity σ = 1/Resistivity ρ",
+    activity:"Test household materials: penny, pencil, eraser, water, foil. Which conducts electricity? Build a simple tester circuit.",
+    quiz:{ q:"Which is the best electrical conductor?", opts:["Plastic","Rubber","Copper","Wood"], ans:2 }},
+  { n:9,  cat:"Basic Electricity", title:"Magnetism & Electromagnetism",     diff:"Intermediate", time:25, emoji:"🧲",
+    concept:"Moving electric charges create magnetic fields. An electromagnet uses current-carrying coils to generate magnetic force. Motors, generators, transformers, and hard drives all use this principle. Faraday's Law describes how changing magnetic fields induce current.",
+    formula:"F = qvB (Magnetic force on moving charge)",
+    activity:"Build an electromagnet: wrap insulated copper wire around a nail, connect to a battery, pick up paperclips.",
+    quiz:{ q:"An electromagnet works because:", opts:["Metal is always magnetic","Moving charges create magnetic fields","Copper is magnetic","Heat creates magnetism"], ans:1 }},
+  { n:10, cat:"Basic Electricity", title:"Kirchhoff's Laws",                  diff:"Intermediate", time:30, emoji:"📐",
+    concept:"Kirchhoff's Current Law (KCL): All current entering a node equals current leaving it. Kirchhoff's Voltage Law (KVL): The sum of all voltages around a closed loop equals zero. These laws are fundamental tools for circuit analysis.",
+    formula:"KCL: ΣI_in = ΣI_out  |  KVL: ΣV_loop = 0",
+    activity:"Solve a 3-loop circuit using KCL and KVL. Verify with online circuit simulators like Falstad.",
+    quiz:{ q:"KCL states that at any node, current:", opts:["Increases","Decreases","Is conserved","Doubles"], ans:2 }},
+  { n:11, cat:"Basic Electricity", title:"Capacitance",                       diff:"Intermediate", time:25, emoji:"🔵",
+    concept:"A capacitor stores electric charge between two conducting plates separated by an insulator. It charges when voltage is applied and releases charge when needed. Capacitors block DC but pass AC. Used for filtering, timing, and energy storage.",
+    formula:"Q = C × V  |  Energy = ½CV²",
+    activity:"Build an RC circuit on a breadboard. Observe the LED gradually brightening (charging) then dimming (discharging).",
+    quiz:{ q:"A capacitor stores energy in:", opts:["Magnetic field","Electric field","Heat","Light"], ans:1 }},
+  { n:12, cat:"Basic Electricity", title:"Inductance",                        diff:"Intermediate", time:25, emoji:"🌀",
+    concept:"An inductor stores energy in a magnetic field when current flows through it. It resists changes in current. Inductors are used in filters, transformers, and power supplies. Together with capacitors they form LC circuits used in radio tuners.",
+    formula:"V = L × (dI/dt)  |  Energy = ½LI²",
+    activity:"Wind 50 turns of wire around a ferrite core. Measure inductance with a meter or test with an LC circuit.",
+    quiz:{ q:"An inductor resists changes in:", opts:["Voltage","Current","Resistance","Power"], ans:1 }},
+  { n:13, cat:"Basic Electricity", title:"Transformers & Power Transfer",     diff:"Intermediate", time:25, emoji:"🔄",
+    concept:"A transformer transfers electrical energy between two circuits using electromagnetic induction. Step-up transformers increase voltage (decrease current). Step-down transformers decrease voltage (increase current). Power is conserved: P_in ≈ P_out.",
+    formula:"V1/V2 = N1/N2  (Turns ratio)",
+    activity:"Disassemble an old phone charger (safely, unplugged). Identify the transformer inside and count visible windings.",
+    quiz:{ q:"A step-down transformer:", opts:["Increases voltage","Decreases voltage","Increases power","Decreases current"], ans:1 }},
+  { n:14, cat:"Basic Electricity", title:"Grounding & Earthing",              diff:"Beginner", time:20, emoji:"🌍",
+    concept:"Grounding provides a reference point (0V) and a safe path for fault currents. Earthing connects electrical equipment to the earth for safety. Three-pin plugs include a ground pin. In circuits, ground is the common reference for all voltage measurements.",
+    formula:"V_measured = V_point - V_ground",
+    activity:"Identify the ground pin on a 3-pin plug. Draw a diagram showing how grounding prevents electric shock.",
+    quiz:{ q:"Ground in a circuit serves as:", opts:["Power source","Voltage reference","Current amplifier","Short circuit"], ans:1 }},
+  { n:15, cat:"Basic Electricity", title:"Electricity Safety Review",         diff:"Beginner", time:20, emoji:"🛡️",
+    concept:"Review of all safety principles: never work on live circuits, use insulated tools, discharge capacitors before touching, respect voltage ratings, always have a fuse/breaker, use proper wire gauges, work in dry conditions, and keep a first aid kit nearby.",
+    formula:"Safe current (human body): < 1mA feeling, > 10mA dangerous, > 100mA lethal",
+    activity:"Create a personal 'Electronics Safety Checklist' with at least 10 rules for your workspace.",
+    quiz:{ q:"Which current level is considered potentially lethal through the human body?", opts:["1mA","5mA","10mA","100mA"], ans:3 }},
+
+  // Components (16-33)
+  { n:16, cat:"Components", title:"Resistors — The Basics",                   diff:"Beginner", time:20, emoji:"〰️",
+    concept:"Resistors limit the flow of electric current. They're measured in Ohms (Ω). The color bands on a resistor tell you its resistance value. Common types: carbon film, metal film, and wire-wound. They protect sensitive components like LEDs from too much current.",
+    formula:"R = V / I  (From Ohm's Law)",
+    activity:"Decode the resistance of 5 resistors using the color band chart. Verify with a multimeter.",
+    quiz:{ q:"The first color band on a resistor represents:", opts:["Tolerance","Multiplier","First digit","Temperature"], ans:2 }},
+  { n:17, cat:"Components", title:"Capacitors — Types & Uses",                diff:"Beginner", time:20, emoji:"⚡",
+    concept:"Capacitors come in many types: electrolytic (large capacitance, polarized), ceramic (small, non-polarized), film, tantalum. The capacitance is measured in Farads (F). Applications: power supply filtering, timing circuits, coupling/decoupling signals.",
+    formula:"Capacitive Reactance: Xc = 1/(2πfC)",
+    activity:"On a breadboard, build an LED flasher using a 555 timer, one capacitor, and two resistors.",
+    quiz:{ q:"Electrolytic capacitors are:", opts:["Non-polarized","Always polarized","Used for RF","Measured in Henrys"], ans:1 }},
+  { n:18, cat:"Components", title:"Diodes — One Way Gates",                   diff:"Beginner", time:20, emoji:"▶️",
+    concept:"A diode allows current to flow in only one direction (forward bias) and blocks it in the other (reverse bias). The symbol shows an arrow pointing the direction of conventional current flow. Used in rectifiers (AC→DC), protection circuits, and LEDs.",
+    formula:"V_forward ≈ 0.7V (silicon) | 0.3V (germanium)",
+    activity:"Build a half-wave rectifier using a diode and observe the DC output on an LED from AC input.",
+    quiz:{ q:"A diode in reverse bias:", opts:["Conducts freely","Blocks current","Amplifies signal","Acts as resistor"], ans:1 }},
+  { n:19, cat:"Components", title:"LEDs — Light Emitting Diodes",             diff:"Beginner", time:15, emoji:"💡",
+    concept:"An LED is a diode that emits light when forward biased. Different semiconductor materials produce different colors. LEDs require current-limiting resistors. They're energy-efficient, long-lasting, and come in various forms: regular, RGB, SMD, high-power.",
+    formula:"R_limit = (V_supply - V_LED) / I_LED",
+    activity:"Calculate and build: power a red LED (V_f=2V, I=20mA) from a 5V supply. What resistor do you need?",
+    quiz:{ q:"Why do LEDs need a current-limiting resistor?", opts:["To increase brightness","To prevent burnout","To change color","To reduce voltage"], ans:1 }},
+  { n:20, cat:"Components", title:"Transistors — NPN & PNP",                  diff:"Intermediate", time:30, emoji:"🔺",
+    concept:"A transistor is a semiconductor device that amplifies or switches signals. NPN: current flows from Collector to Emitter when base is positive. PNP: opposite. Small base current controls large collector current. The beta (β) is the amplification factor.",
+    formula:"I_C = β × I_B  (Current gain)",
+    activity:"Build a transistor switch: use a small signal from a button to switch a motor on/off via transistor.",
+    quiz:{ q:"In an NPN transistor, current flows from:", opts:["Emitter to Collector","Collector to Emitter","Base to Collector","Emitter to Base"], ans:1 }},
+  { n:21, cat:"Components", title:"MOSFETs",                                   diff:"Intermediate", time:30, emoji:"🔧",
+    concept:"MOSFET (Metal Oxide Semiconductor Field Effect Transistor) is voltage-controlled unlike BJT. N-channel: voltage on gate allows drain-source current. P-channel: opposite. MOSFETs are used in power control, motor drivers, and are the building block of all modern processors.",
+    formula:"I_D = (μn × Cox × W/L) × (V_GS - V_th)² / 2",
+    activity:"Replace the transistor in Session 20's motor circuit with an N-channel MOSFET (e.g., 2N7000). Compare results.",
+    quiz:{ q:"MOSFETs are controlled by:", opts:["Current","Voltage","Power","Resistance"], ans:1 }},
+  { n:22, cat:"Components", title:"Operational Amplifiers",                   diff:"Advanced", time:35, emoji:"📈",
+    concept:"An Op-Amp is a high-gain differential amplifier. It amplifies the difference between two inputs (V+ and V-). With negative feedback, we can create precise amplifiers, comparators, filters, and integrators. The 741 and LM358 are classic op-amp ICs.",
+    formula:"V_out = A_v × (V+ - V-)  |  V_out(inverting) = -(Rf/Rin) × V_in",
+    activity:"Build an inverting amplifier with gain -10 using LM358. Input 0.1V and verify ~1V output.",
+    quiz:{ q:"An op-amp in inverting configuration with Rf=100kΩ and Rin=10kΩ has gain:", opts:["-10","+10","-1","100"], ans:0 }},
+  { n:23, cat:"Components", title:"555 Timer IC",                              diff:"Intermediate", time:30, emoji:"⏱️",
+    concept:"The 555 timer is one of the most popular ICs ever made. It can operate as: Astable (oscillator), Monostable (one-shot pulse), or Bistable (flip-flop). Used in clocks, PWM, alarms, LED flashers, and tone generators.",
+    formula:"f = 1.44 / ((Ra + 2Rb) × C)  [Astable mode]",
+    activity:"Build an LED flasher using 555 in astable mode. Change the capacitor value to change flash frequency.",
+    quiz:{ q:"555 in astable mode acts as:", opts:["Amplifier","Switch","Oscillator","Rectifier"], ans:2 }},
+  { n:24, cat:"Components", title:"Voltage Regulators",                       diff:"Intermediate", time:25, emoji:"🎛️",
+    concept:"Voltage regulators maintain constant output voltage regardless of input variations or load changes. Linear regulators (7805 → 5V, 7812 → 12V) are simple but inefficient. Switching regulators (buck, boost) are efficient for battery-powered devices.",
+    formula:"7805 output = 5V ± 4% | Efficiency = P_out/P_in × 100%",
+    activity:"Build a 5V power supply using a 7805 regulator, two filter capacitors, and a DC input of 9-12V.",
+    quiz:{ q:"7805 voltage regulator outputs:", opts:["3.3V","5V","9V","12V"], ans:1 }},
+  { n:25, cat:"Components", title:"Relays",                                    diff:"Intermediate", time:25, emoji:"🔀",
+    concept:"A relay is an electrically operated mechanical switch. A small control circuit energizes a coil, which moves a metal arm to switch a high-power circuit. Used to control AC appliances with low-power DC circuits. Always use a flyback diode to protect from voltage spikes.",
+    formula:"I_coil = V_supply / R_coil  (typically 70-100mA)",
+    activity:"Control a 230V lamp using a 5V relay module and Arduino. Add a flyback diode to protect the transistor.",
+    quiz:{ q:"A flyback diode in a relay circuit protects against:", opts:["Short circuit","Voltage spikes","Low current","Heat"], ans:1 }},
+  { n:26, cat:"Components", title:"Inductors & Coils",                        diff:"Intermediate", time:25, emoji:"🌀",
+    concept:"Inductors store energy as magnetic fields. They resist sudden changes in current (filtering). In power supplies, inductors smooth current ripple. In RF circuits, they form resonant tanks with capacitors. Values in microhenrys (μH) to millihenrys (mH).",
+    formula:"X_L = 2πfL  (Inductive reactance)",
+    activity:"Build an LC filter circuit to reduce noise from a motor-driven power supply. Observe the smoothing effect.",
+    quiz:{ q:"Inductors are commonly used for:", opts:["Storing charge","Filtering current ripple","Amplifying signals","Generating light"], ans:1 }},
+  { n:27, cat:"Components", title:"Zener Diodes",                             diff:"Intermediate", time:20, emoji:"↩️",
+    concept:"A Zener diode is designed to operate in reverse breakdown at a specific voltage (Zener voltage). It's used as a voltage reference, overvoltage protection, and simple voltage regulator. Unlike regular diodes, Zeners are safe to use in reverse breakdown.",
+    formula:"V_z = constant (e.g., 5.1V for 1N4733A)",
+    activity:"Build a 5.1V Zener voltage regulator. Test it with varying input voltages from 7V to 12V. Measure output.",
+    quiz:{ q:"Zener diodes are designed for use in:", opts:["Forward bias only","Reverse breakdown","AC circuits","High frequency"], ans:1 }},
+  { n:28, cat:"Components", title:"Photoresistors & LDRs",                    diff:"Beginner", time:20, emoji:"🌞",
+    concept:"A Light Dependent Resistor (LDR/photoresistor) changes resistance based on light intensity. In darkness: high resistance (megaohms). In bright light: low resistance (hundreds of ohms). Used in automatic lights, camera exposure sensors, and light-following robots.",
+    formula:"R_dark / R_light ratio typically > 1000:1",
+    activity:"Build an automatic night lamp: LDR + transistor + LED. LED turns on in darkness, off in light.",
+    quiz:{ q:"An LDR in bright light has:", opts:["High resistance","Low resistance","Zero resistance","Infinite resistance"], ans:1 }},
+  { n:29, cat:"Components", title:"Thermistors",                              diff:"Beginner", time:20, emoji:"🌡️",
+    concept:"A thermistor is a resistor that changes with temperature. NTC (Negative Temperature Coefficient): resistance decreases as temperature rises—used in temperature measurement. PTC (Positive Temperature Coefficient): resistance increases with temperature—used as self-resetting fuses.",
+    formula:"R(T) = R₀ × e^(B(1/T - 1/T₀)) [NTC Steinhart equation]",
+    activity:"Build a temperature indicator: thermistor + voltage divider + LED array that lights up proportionally to heat.",
+    quiz:{ q:"NTC thermistor stands for:", opts:["Normal Temperature Control","Negative Temperature Coefficient","Neutral Thermal Component","New Technology Component"], ans:1 }},
+  { n:30, cat:"Components", title:"Crystal Oscillators",                      diff:"Advanced", time:25, emoji:"💎",
+    concept:"Crystal oscillators use the piezoelectric effect of quartz crystals to create very accurate clock signals. The crystal mechanically vibrates at a precise frequency. Used in clocks, microcontrollers, GPS, and communication systems.",
+    formula:"f_resonance = (1/2π) × √(1/LC) [LC equivalent of crystal]",
+    activity:"Measure the oscillation frequency of a 16MHz crystal using Arduino's timer or an oscilloscope.",
+    quiz:{ q:"Crystal oscillators use which property of quartz?", opts:["Magnetic","Piezoelectric","Optical","Thermal"], ans:1 }},
+  { n:31, cat:"Components", title:"DC Motors",                                diff:"Beginner", time:20, emoji:"⚙️",
+    concept:"DC motors convert electrical energy to rotational mechanical energy. Speed is proportional to voltage. Torque is proportional to current. Use PWM (Pulse Width Modulation) to control speed. H-bridge ICs like L298N let you reverse motor direction.",
+    formula:"RPM ∝ V_applied - V_backEMF",
+    activity:"Control DC motor speed and direction using L298N H-bridge and Arduino with PWM analogWrite().",
+    quiz:{ q:"PWM controls motor speed by varying:", opts:["Voltage amplitude","Current","Duty cycle","Frequency"], ans:2 }},
+  { n:32, cat:"Components", title:"Servo Motors",                             diff:"Intermediate", time:25, emoji:"🎯",
+    concept:"Servo motors provide precise angular position control. They have built-in feedback (encoder or potentiometer). RC servos rotate 0°-180° based on PWM pulse width. Used in robotics, CNC, camera gimbals, and steering systems.",
+    formula:"Position ∝ Pulse Width (1ms=0°, 1.5ms=90°, 2ms=180°)",
+    activity:"Control a servo motor with Arduino using the Servo library. Create a servo-based robotic finger.",
+    quiz:{ q:"Servo position is controlled by:", opts:["Voltage level","PWM pulse width","Current value","Frequency"], ans:1 }},
+  { n:33, cat:"Components", title:"Stepper Motors",                           diff:"Advanced", time:30, emoji:"🔩",
+    concept:"Stepper motors move in precise steps (1.8° per step typically). They don't need encoders for position—each step is counted. Used in 3D printers, CNC machines, telescopes. Driven by step sequences using driver ICs like A4988 or DRV8825.",
+    formula:"Steps per revolution = 360° / step_angle (typically 200 steps/rev)",
+    activity:"Program an Arduino with A4988 driver to spin a NEMA17 motor exactly one full revolution, then reverse.",
+    quiz:{ q:"A standard stepper with 1.8° step angle has how many steps per revolution?", opts:["100","180","200","360"], ans:2 }},
+
+  // Circuits (34-53)
+  { n:34, cat:"Circuits", title:"Breadboard Basics",                          diff:"Beginner", time:15, emoji:"🍞",
+    concept:"A breadboard is a solderless prototyping board. Holes in the middle are connected in rows of 5. Power rails run along the sides. Use jumper wires to make connections. Perfect for testing circuits without permanent soldering.",
+    formula:"Internal connection: horizontal rows (A-E), (F-J) connected, vertical rails (+/-) connected",
+    activity:"Replicate your Session 5 series circuit on a breadboard. Then modify to parallel from Session 6.",
+    quiz:{ q:"On a breadboard, holes in the same horizontal row are:", opts:["Not connected","Connected electrically","Connected to power","Grounded"], ans:1 }},
+  { n:35, cat:"Circuits", title:"Voltage Dividers",                           diff:"Beginner", time:20, emoji:"÷",
+    concept:"A voltage divider uses two resistors in series to produce a fraction of the supply voltage. Used to scale down voltages, create reference voltages, and interface sensors (like LDR/thermistor) with microcontrollers.",
+    formula:"V_out = V_in × R2/(R1+R2)",
+    activity:"Build a light sensor using LDR and a 10kΩ resistor as a voltage divider. Measure the voltage change with light.",
+    quiz:{ q:"In a voltage divider with R1=R2, V_out (across R2) equals:", opts:["V_in","V_in/4","V_in/2","2×V_in"], ans:2 }},
+  { n:36, cat:"Circuits", title:"RC Timing Circuits",                         diff:"Intermediate", time:25, emoji:"⏲️",
+    concept:"RC circuits use a resistor and capacitor to create time delays. The time constant τ (tau) = R×C. After one τ, capacitor charges to 63.2% of supply voltage. After 5τ, it's essentially fully charged. Used in debouncing, timer circuits, and filters.",
+    formula:"τ = R × C  |  V(t) = V_max × (1 - e^(-t/τ))",
+    activity:"Build an RC circuit with R=10kΩ, C=100μF. Measure the time for an LED to reach full brightness.",
+    quiz:{ q:"RC time constant τ equals:", opts:["R+C","R×C","R/C","C/R"], ans:1 }},
+  { n:37, cat:"Circuits", title:"Low Pass Filters",                           diff:"Intermediate", time:25, emoji:"🔽",
+    concept:"A low-pass filter passes low frequencies and blocks high frequencies. An RC low-pass filter uses R in series and C in parallel with the load. The cutoff frequency (fc) defines where signal starts attenuating. Used in audio, power supplies, and communications.",
+    formula:"fc = 1/(2πRC)  |  Roll-off: -20dB/decade",
+    activity:"Build an RC low-pass filter for audio. Connect it between an audio source and speaker. Notice the treble rolloff.",
+    quiz:{ q:"A low-pass filter:", opts:["Passes only high frequencies","Blocks all signals","Passes low, blocks high frequencies","Amplifies all frequencies"], ans:2 }},
+  { n:38, cat:"Circuits", title:"High Pass Filters",                          diff:"Intermediate", time:25, emoji:"🔼",
+    concept:"A high-pass filter passes high frequencies and blocks low/DC frequencies. The RC high-pass filter has C in series and R in parallel. Used to remove DC offset, separate audio treble, and in differentiation circuits.",
+    formula:"fc = 1/(2πRC)  |  Roll-off: +20dB/decade",
+    activity:"Use an RC high-pass filter to block the 'hum' (50/60Hz) from an audio signal while preserving treble.",
+    quiz:{ q:"A capacitor in series blocks:", opts:["AC signals","DC and low frequencies","High frequencies","All signals"], ans:1 }},
+  { n:39, cat:"Circuits", title:"Rectifier Circuits",                         diff:"Intermediate", time:25, emoji:"🔄",
+    concept:"Rectifiers convert AC to DC. Half-wave: one diode, 50% efficiency. Full-wave bridge: 4 diodes, ~99% efficiency. Adding a large filter capacitor smoothes the output ripple. This is the heart of every power supply adapter.",
+    formula:"V_dc(avg) ≈ 0.636 × V_peak (full-wave)",
+    activity:"Build a full-wave bridge rectifier with a filter capacitor. Compare ripple with and without capacitor.",
+    quiz:{ q:"A full-wave bridge rectifier uses how many diodes?", opts:["1","2","3","4"], ans:3 }},
+  { n:40, cat:"Circuits", title:"Transistor Switch Circuit",                  diff:"Intermediate", time:25, emoji:"🔦",
+    concept:"A transistor switch controls high-power loads with low-power signals. When base voltage > V_BE(0.7V), transistor saturates (ON). When base is 0V, transistor cuts off (OFF). Add a base resistor to limit base current. Used for motor, relay, and LED control.",
+    formula:"R_base = (V_in - 0.7) / (I_C / β × safety_factor)",
+    activity:"Use an NPN transistor to switch a motor on/off from an Arduino's 5V digital pin.",
+    quiz:{ q:"An NPN transistor switches ON when base is:", opts:["Negative","0V","Positive (>0.7V)","Floating"], ans:2 }},
+  { n:41, cat:"Circuits", title:"Amplifier Circuits",                         diff:"Advanced", time:30, emoji:"📣",
+    concept:"Common-emitter transistor amplifiers provide voltage gain and phase inversion. The gain depends on collector and emitter resistors. Op-amp amplifiers offer precise gain control. Used in audio amplification, signal conditioning, and sensor readout circuits.",
+    formula:"A_v (CE) ≈ -Rc/Re  |  A_v (op-amp) = -(Rf/Rin)",
+    activity:"Build a 2-stage audio amplifier using two NPN transistors. Amplify microphone signal to drive a small speaker.",
+    quiz:{ q:"Common-emitter amplifiers introduce a phase shift of:", opts:["0°","90°","180°","270°"], ans:2 }},
+  { n:42, cat:"Circuits", title:"Oscillator Circuits",                        diff:"Advanced", time:30, emoji:"〰️",
+    concept:"Oscillators generate periodic signals without an external input. LC oscillators (Colpitts, Hartley) use resonant tanks. RC oscillators (Wien Bridge, Phase Shift) work at audio frequencies. 555 timer creates simple square waves. Quartz oscillators provide stability.",
+    formula:"f_lc = 1/(2π√LC)  |  f_rc = 1/(2πRC√6) [Phase shift]",
+    activity:"Build a Colpitts oscillator and tune it to generate tones in the audio range (200Hz-2kHz).",
+    quiz:{ q:"LC oscillator frequency depends on:", opts:["Resistance","Inductance and Capacitance","Voltage only","Current only"], ans:1 }},
+  { n:43, cat:"Circuits", title:"PWM — Pulse Width Modulation",               diff:"Intermediate", time:25, emoji:"📊",
+    concept:"PWM rapidly switches a signal on/off to simulate analog output. Duty cycle = ON time / period. 50% duty cycle = half power. Used for motor speed, LED brightness, servo control, and DAC conversion. Microcontrollers have hardware PWM pins.",
+    formula:"Duty Cycle = t_on / T × 100%  |  V_avg = V × (duty cycle/100)",
+    activity:"Use Arduino analogWrite(pin, 0-255) to create a breathing LED effect using a sine wave duty cycle.",
+    quiz:{ q:"100% duty cycle PWM means the signal is:", opts:["Always OFF","50% ON","Always ON","Oscillating"], ans:2 }},
+  { n:44, cat:"Circuits", title:"Logic Gates",                                diff:"Intermediate", time:30, emoji:"🔀",
+    concept:"Logic gates are the building blocks of digital circuits. AND: output high only if ALL inputs high. OR: high if ANY input is high. NOT: inverts input. NAND, NOR, XOR derived gates. Combinational logic circuits compute Boolean functions.",
+    formula:"AND: A·B  |  OR: A+B  |  NOT: Ā  |  XOR: A⊕B",
+    activity:"Build a basic logic circuit using 74HC00 (NAND) IC. Implement AND, OR, and XOR from just NAND gates.",
+    quiz:{ q:"A NAND gate outputs 0 when:", opts:["Any input is 0","Both inputs are 1","One input is 1","Both inputs are 0"], ans:1 }},
+  { n:45, cat:"Circuits", title:"Flip-Flops & Memory",                       diff:"Advanced", time:30, emoji:"🔁",
+    concept:"Flip-flops store 1 bit of data. SR flip-flop: Set/Reset. D flip-flop: data stored on clock edge. JK flip-flop: universal. T flip-flop: toggles. Used in registers, counters, and memory arrays. Triggered by clock edges for synchronous operation.",
+    formula:"D flip-flop: Q(t+1) = D  |  T flip-flop: Q(t+1) = Q(t) XOR T",
+    activity:"Build a 4-bit binary counter using four D flip-flops. Display count on LEDs using 74HC74 ICs.",
+    quiz:{ q:"A D flip-flop stores data:", opts:["On every voltage change","On clock edge","Continuously","Never"], ans:1 }},
+  { n:46, cat:"Circuits", title:"Shift Registers",                            diff:"Advanced", time:25, emoji:"➡️",
+    concept:"Shift registers move data one bit at a time through a chain of flip-flops. Serial-to-parallel: receive 1 bit at a time, output all simultaneously. 74HC595: 8-bit serial-in, parallel-out. Useful for expanding Arduino outputs using just 3 wires.",
+    formula:"Data shifted on each clock cycle: Q → Q_next",
+    activity:"Control 8 LEDs using only 3 Arduino pins via 74HC595 shift register. Create a running light pattern.",
+    quiz:{ q:"74HC595 shifts data from serial to:", opts:["Serial output","Parallel output","I2C","SPI"], ans:1 }},
+  { n:47, cat:"Circuits", title:"I2C Communication",                         diff:"Intermediate", time:30, emoji:"🔗",
+    concept:"I2C (Inter-Integrated Circuit) uses 2 wires: SDA (data) and SCL (clock). Multiple devices share the same bus with unique addresses. Master initiates communication, slaves respond. Used for sensors, OLED displays, RTCs, and EEPROMs.",
+    formula:"Address: 7-bit = 128 unique devices max | Speed: 100kHz, 400kHz, 1MHz",
+    activity:"Connect an OLED display (SSD1306) to Arduino via I2C. Display 'ElectroLearn' and sensor readings.",
+    quiz:{ q:"I2C requires how many communication wires?", opts:["1","2","3","4"], ans:1 }},
+  { n:48, cat:"Circuits", title:"SPI Communication",                         diff:"Intermediate", time:25, emoji:"🔄",
+    concept:"SPI (Serial Peripheral Interface) uses 4 wires: MOSI, MISO, SCK, SS/CS. Full-duplex, faster than I2C. Each slave has its own chip select line. Used for SD cards, LCD displays, ADC/DAC chips, and high-speed sensors.",
+    formula:"Speed: up to 50MHz | Modes 0-3 based on clock polarity (CPOL) and phase (CPHA)",
+    activity:"Interface an SD card module to Arduino via SPI. Write temperature data to a .txt file every second.",
+    quiz:{ q:"SPI communication uses how many wires?", opts:["1","2","3","4"], ans:3 }},
+  { n:49, cat:"Circuits", title:"UART / Serial Communication",               diff:"Intermediate", time:25, emoji:"💬",
+    concept:"UART (Universal Asynchronous Receiver Transmitter) is the simplest serial protocol. Uses TX (transmit) and RX (receive) lines. Asynchronous—no shared clock. Baud rate must match on both sides. Used in GPS modules, Bluetooth, XBee, and ESP8266.",
+    formula:"Baud rate = bits per second | Common: 9600, 115200 bps",
+    activity:"Connect a GPS module (Neo-6M) to Arduino via UART. Parse NMEA sentences to extract latitude/longitude.",
+    quiz:{ q:"UART is called 'asynchronous' because:", opts:["It's slow","It uses no shared clock","It uses one wire","It's wireless"], ans:1 }},
+  { n:50, cat:"Circuits", title:"ADC & DAC",                                  diff:"Intermediate", time:30, emoji:"🔢",
+    concept:"ADC (Analog-to-Digital Converter) converts analog signals to digital values. Arduino Uno's ADC: 10-bit (0-1023). DAC converts digital values back to analog voltages. Used for reading sensors, audio processing, and waveform generation.",
+    formula:"V_digital = V_analog × (2^bits - 1) / V_ref",
+    activity:"Read a potentiometer using Arduino ADC and map its value to control LED brightness via PWM (DAC-like).",
+    quiz:{ q:"Arduino Uno's ADC resolution is:", opts:["8-bit","10-bit","12-bit","16-bit"], ans:1 }},
+  { n:51, cat:"Circuits", title:"Power Supply Design",                        diff:"Intermediate", time:30, emoji:"🔋",
+    concept:"A complete power supply: transformer (AC step-down) → bridge rectifier (AC→DC) → filter capacitor (smooth) → voltage regulator (stabilize). Design considerations: output voltage, current capacity, regulation, ripple, and efficiency.",
+    formula:"C_filter = I_load / (2 × f × V_ripple)",
+    activity:"Design and build a dual-output (5V, 3.3V) bench power supply for your electronics projects.",
+    quiz:{ q:"What component smooths ripple in a power supply?", opts:["Resistor","Inductor","Transformer","Filter capacitor"], ans:3 }},
+  { n:52, cat:"Circuits", title:"PCB Design Basics",                          diff:"Advanced", time:40, emoji:"🖨️",
+    concept:"PCB (Printed Circuit Board) design involves placing components and routing copper traces. Key concepts: layers, trace width (current capacity), ground plane, vias (layer connections), keepout zones. Tools: KiCad (free), Eagle, EasyEDA.",
+    formula:"Min trace width (mm) = I / (k × ΔT^0.44 × area^0.725)",
+    activity:"Using KiCad or EasyEDA, design a simple LED flasher PCB from the 555 timer circuit. Export Gerber files.",
+    quiz:{ q:"Gerber files are used for:", opts:["Programming","Simulation","PCB manufacturing","Documentation"], ans:2 }},
+  { n:53, cat:"Circuits", title:"Soldering Techniques",                       diff:"Beginner", time:30, emoji:"🔥",
+    concept:"Soldering joins components to PCBs using molten solder. Solder temperature: 350-400°C. Good joint: shiny, smooth volcano shape. Cold joint: dull, grainy, unreliable. Lead-free solder (SAC305) is safer. Always use flux for clean joints and ventilate the area.",
+    formula:"Solder composition: 60/40 (Sn/Pb) or SAC305 (96.5Sn/3Ag/0.5Cu)",
+    activity:"Practice soldering on a through-hole PCB kit. Aim for 20 perfect joints before moving to SMD soldering.",
+    quiz:{ q:"A good solder joint appears:", opts:["Dull and grainy","Shiny and smooth","Large and bulgy","Flat and thin"], ans:1 }},
+
+  // Sensors (54-68)
+  { n:54, cat:"Sensors", title:"Temperature Sensors (DHT11/DHT22)",           diff:"Beginner", time:20, emoji:"🌡️",
+    concept:"DHT11 measures temperature (0-50°C ±2°C) and humidity. DHT22 is more accurate (±0.5°C, -40 to 80°C). Single-wire protocol. Use DHT library with Arduino. Available values: temperature in Celsius, Fahrenheit, and relative humidity %.",
+    formula:"Humidity: 20-80% ±5% (DHT11) | Temperature resolution: 0.1°C (DHT22)",
+    activity:"Build a weather station displaying temperature and humidity on LCD. Log data every minute to serial.",
+    quiz:{ q:"DHT22 is preferred over DHT11 because:", opts:["It's cheaper","It's more accurate","It's larger","It's faster"], ans:1 }},
+  { n:55, cat:"Sensors", title:"Ultrasonic Distance Sensor (HC-SR04)",        diff:"Beginner", time:20, emoji:"📡",
+    concept:"HC-SR04 uses ultrasonic pulses to measure distance (2cm to 4m). It sends a 40kHz pulse and measures echo time. The Arduino pulseIn() function captures echo duration. Distance = speed of sound × time / 2.",
+    formula:"Distance (cm) = duration(μs) × 0.0343 / 2",
+    activity:"Build an Arduino proximity alarm. LED brightens and buzzer beeps faster as objects get closer.",
+    quiz:{ q:"HC-SR04 measures distance using:", opts:["Light","Infrared","Ultrasound","Radio waves"], ans:2 }},
+  { n:56, cat:"Sensors", title:"PIR Motion Sensor",                           diff:"Beginner", time:20, emoji:"🚶",
+    concept:"PIR (Passive Infrared) sensors detect infrared radiation changes from warm objects (like humans). Output goes HIGH when motion detected. Adjustable sensitivity and delay. Used in security systems, automatic lights, and occupancy detection.",
+    formula:"Detection range: typically 5-7 meters, 120° field of view",
+    activity:"Build an automatic security light: PIR triggers relay to switch on lamp for 30 seconds after detection.",
+    quiz:{ q:"PIR sensors detect:", opts:["Sound","Temperature only","Infrared radiation changes","Visible light"], ans:2 }},
+  { n:57, cat:"Sensors", title:"IR Sensors & Obstacle Detection",             diff:"Beginner", time:20, emoji:"👁️",
+    concept:"IR obstacle sensors emit infrared light and detect reflection. Used for line following, obstacle avoidance, and object counting. The reflectance varies with object color and distance. Receiver detects reflected IR via photodiode.",
+    formula:"Optimal detection: 2-30cm | Adjustable via onboard potentiometer",
+    activity:"Build a 2-sensor line-following robot that stays on a black tape track on white surface.",
+    quiz:{ q:"IR sensors work best for detecting objects at:", opts:["1km","100m","2-30cm","0.1mm"], ans:2 }},
+  { n:58, cat:"Sensors", title:"Gas & Air Quality Sensors (MQ Series)",       diff:"Intermediate", time:25, emoji:"💨",
+    concept:"MQ series sensors detect various gases: MQ-2 (smoke/LPG/CO), MQ-3 (alcohol), MQ-135 (air quality). Need calibration in fresh air. Output analog voltage proportional to gas concentration. Warm up time: 2 minutes minimum.",
+    formula:"R_s/R_0 ratio determines ppm concentration (from datasheet curve)",
+    activity:"Build a gas alarm using MQ-2 sensor. Trigger buzzer and LED when smoke/gas detected above threshold.",
+    quiz:{ q:"MQ sensors need warm-up time because:", opts:["They're slow","Heater stabilizes sensitivity","They're new","Battery charges"], ans:1 }},
+  { n:59, cat:"Sensors", title:"Light & Color Sensors",                       diff:"Intermediate", time:25, emoji:"🌈",
+    concept:"TSL2561 measures lux accurately. BH1750 provides digital light intensity. TCS34725 detects RGB color values. Used in smart lighting, display auto-brightness, and color sorting machines. Light sensors convert photons to measurable voltage/current.",
+    formula:"Illuminance (lux): 1 lux = 1 lm/m² | Sunlight ≈ 100,000 lux",
+    activity:"Build a color sorting machine with TCS34725: identify red, green, and blue objects using RGB readings.",
+    quiz:{ q:"TCS34725 primarily measures:", opts:["Temperature","Sound","RGB color","Distance"], ans:2 }},
+  { n:60, cat:"Sensors", title:"Gyroscope & Accelerometer (MPU6050)",         diff:"Intermediate", time:30, emoji:"🎮",
+    concept:"MPU6050 combines a 3-axis gyroscope and 3-axis accelerometer in one I2C chip. Accelerometer measures linear acceleration (including gravity). Gyroscope measures angular velocity. Together used for drone stabilization, gesture control, and AR/VR.",
+    formula:"Roll/Pitch from accelerometer: angle = atan2(y, z) × 180/π",
+    activity:"Build a self-balancing platform using MPU6050 + servos. Display tilt angles on OLED display.",
+    quiz:{ q:"MPU6050 communicates via:", opts:["SPI","UART","I2C","1-Wire"], ans:2 }},
+  { n:61, cat:"Sensors", title:"GPS Module (Neo-6M)",                          diff:"Intermediate", time:30, emoji:"🗺️",
+    concept:"GPS module receives signals from satellites to determine position. Neo-6M outputs NMEA sentences via UART. GPGGA sentence contains latitude, longitude, altitude, and fix quality. Used in tracking devices, navigation, and weather balloons.",
+    formula:"NMEA: $GPGGA,time,lat,N/S,lon,E/W,fix,sats,hdop,alt,...",
+    activity:"Build a GPS tracker that logs coordinates every 10 seconds to an SD card with timestamp.",
+    quiz:{ q:"GPS modules communicate using:", opts:["I2C","SPI","UART","WiFi"], ans:2 }},
+  { n:62, cat:"Sensors", title:"Soil Moisture Sensor",                        diff:"Beginner", time:20, emoji:"🌱",
+    concept:"Capacitive soil moisture sensors measure water content without corroding. Resistive sensors are cheaper but corrode faster. The Arduino ADC reads the analog voltage. Higher moisture = higher/lower reading depending on sensor type.",
+    formula:"Moisture % = map(analogRead, dry_value, wet_value, 0, 100)",
+    activity:"Build an automatic plant watering system: soil sensor triggers pump relay when soil gets too dry.",
+    quiz:{ q:"Capacitive moisture sensors are better than resistive because:", opts:["They're cheaper","They're faster","They don't corrode","They're smaller"], ans:2 }},
+  { n:63, cat:"Sensors", title:"Sound & Microphone Sensors",                  diff:"Intermediate", time:25, emoji:"🎙️",
+    concept:"Electret microphones convert sound to voltage variations. MAX4466 amplifies mic output for Arduino ADC. Used for sound level monitoring, voice-activated triggers, and audio visualization. Sound level in dB is logarithmic.",
+    formula:"Sound Level (dB) = 20 × log10(P/P_ref)",
+    activity:"Build a sound-reactive LED strip that changes patterns based on music beat using FFT analysis.",
+    quiz:{ q:"dB (decibels) scale is:", opts:["Linear","Logarithmic","Exponential","Quadratic"], ans:1 }},
+  { n:64, cat:"Sensors", title:"Fingerprint Sensor (R307)",                   diff:"Advanced", time:30, emoji:"🔏",
+    concept:"Fingerprint sensors capture optical images, extract minutiae (ridge endings/bifurcations), and store templates. Used for secure access control, attendance systems, and biometric authentication. Adafruit library simplifies Arduino integration.",
+    formula:"False Accept Rate (FAR) < 0.001% | False Reject Rate (FRR) < 1%",
+    activity:"Build a fingerprint door lock: authorized fingers unlock a servo-based latch. Enroll 5 fingerprints.",
+    quiz:{ q:"Fingerprint sensor security is measured by:", opts:["Pixel count","FAR and FRR rates","Scan speed","Power use"], ans:1 }},
+  { n:65, cat:"Sensors", title:"RFID & NFC Sensors",                          diff:"Intermediate", time:25, emoji:"📱",
+    concept:"RFID uses radio waves to read tags (up to 100m). NFC is short-range RFID (< 10cm) used in contactless payments. MFRC522 is a common RFID module for Arduino. Each tag has a unique 4-byte UID for identification.",
+    formula:"RFID frequency: 125kHz (LF), 13.56MHz (HF/NFC), 860-960MHz (UHF)",
+    activity:"Build an RFID attendance system: scan card, log student name and time to SD card.",
+    quiz:{ q:"NFC is a type of RFID that works at:", opts:["Long range","Medium range","Very short range (<10cm)","Infrared range"], ans:2 }},
+  { n:66, cat:"Sensors", title:"Pressure & Force Sensors",                    diff:"Intermediate", time:25, emoji:"🏋️",
+    concept:"Force-Sensitive Resistors (FSR) change resistance with applied force. BMP280 measures barometric pressure and altitude. Load cells with HX711 measure weight accurately. Used in weather stations, scales, and robotic grippers.",
+    formula:"Altitude ≈ 44330 × (1 - (P/P0)^(1/5.255)) meters",
+    activity:"Build a digital scale using a load cell + HX711 + Arduino. Calibrate to within 5g accuracy.",
+    quiz:{ q:"BMP280 sensor measures:", opts:["Temperature only","Barometric pressure and temperature","Force","Humidity"], ans:1 }},
+  { n:67, cat:"Sensors", title:"Hall Effect & Magnetic Sensors",              diff:"Intermediate", time:25, emoji:"🧲",
+    concept:"Hall effect sensors detect magnetic fields. A3144 is a simple digital hall sensor (ON/OFF with magnet). ACS712 measures current using Hall effect. Used for RPM sensing, door switches, current monitoring, and brushless motor position sensing.",
+    formula:"Hall Voltage: V_H = (I × B) / (n × q × d)",
+    activity:"Build an RPM counter using a hall sensor and magnet on a spinning wheel. Display on LCD.",
+    quiz:{ q:"Hall effect sensors detect:", opts:["Temperature","Light","Magnetic fields","Sound"], ans:2 }},
+  { n:68, cat:"Sensors", title:"Current & Voltage Sensing",                   diff:"Intermediate", time:25, emoji:"⚡",
+    concept:"INA219 measures both voltage and current via I2C with high accuracy. ACS712 uses Hall effect for current sensing without breaking the circuit (isolated). Used for battery management, power monitoring, and protection circuits.",
+    formula:"Power = V × I | INA219 resolution: 0.1mA current, 4mV voltage",
+    activity:"Build a power monitor for your projects: display voltage, current, and power on OLED using INA219.",
+    quiz:{ q:"INA219 communicates with Arduino using:", opts:["SPI","Analog","I2C","1-Wire"], ans:2 }},
+
+  // Microcontrollers (69-86)
+  { n:69, cat:"Microcontrollers", title:"Introduction to Microcontrollers",   diff:"Beginner", time:20, emoji:"🖥️",
+    concept:"A microcontroller (MCU) integrates CPU, RAM, Flash memory, and I/O peripherals on one chip. Different from a processor—it's designed for embedded control. Popular families: Arduino (ATmega), ESP8266/ESP32 (Wi-Fi), STM32, PIC, Raspberry Pi.",
+    formula:"Harvard architecture: separate program and data memory spaces",
+    activity:"Research and compare: Arduino Uno vs ESP32 vs Raspberry Pi. Create a feature comparison table.",
+    quiz:{ q:"A microcontroller differs from a microprocessor by:", opts:["Speed","Integrating memory and I/O on chip","Price only","Size only"], ans:1 }},
+  { n:70, cat:"Microcontrollers", title:"Arduino Uno Deep Dive",               diff:"Beginner", time:25, emoji:"🎯",
+    concept:"Arduino Uno: ATmega328P @ 16MHz, 14 digital I/O (6 PWM), 6 analog inputs, 2KB RAM, 32KB Flash. Programming via Arduino IDE using simplified C++. Shields extend functionality. 5V logic, powered via USB or barrel jack.",
+    formula:"Digital I/O: 5V HIGH, 0V LOW | Analog: 10-bit ADC (0-5V → 0-1023)",
+    activity:"Complete the classic Arduino starter: Blink, Button, Analog Read, PWM Fade, and Serial Monitor projects.",
+    quiz:{ q:"Arduino Uno operates at which clock speed?", opts:["8MHz","16MHz","32MHz","48MHz"], ans:1 }},
+  { n:71, cat:"Microcontrollers", title:"Arduino Programming — Fundamentals", diff:"Beginner", time:30, emoji:"📝",
+    concept:"Arduino programs have setup() (runs once) and loop() (runs forever). Key functions: pinMode(), digitalWrite(), analogRead(), delay(). Variables, if/else, for loops, while loops, functions. Serial.begin(9600) for debugging via Serial Monitor.",
+    formula:"setup() → runs once | loop() → runs continuously",
+    activity:"Write a traffic light program: Red 5s, Yellow 1s, Green 5s, with pedestrian button override.",
+    quiz:{ q:"The loop() function in Arduino:", opts:["Runs once","Runs 10 times","Runs continuously","Never runs"], ans:2 }},
+  { n:72, cat:"Microcontrollers", title:"Interrupts & Timers",                diff:"Intermediate", time:30, emoji:"⏰",
+    concept:"Hardware interrupts: external events (button press) stop main loop to run ISR (Interrupt Service Routine). Timer interrupts: fire at precise intervals for time-critical tasks. attachInterrupt(pin, ISR, CHANGE). Keep ISRs short and fast.",
+    formula:"Timer1 period = (65536 - preload) × prescaler / F_cpu",
+    activity:"Use timer interrupt to precisely blink an LED at exactly 1Hz while main loop does other tasks.",
+    quiz:{ q:"An Interrupt Service Routine (ISR) should be:", opts:["Very long","As short as possible","Never used","Always delayed"], ans:1 }},
+  { n:73, cat:"Microcontrollers", title:"EEPROM & Memory Management",         diff:"Intermediate", time:25, emoji:"💾",
+    concept:"Arduino EEPROM stores data that persists after power-off (1KB on Uno). Use EEPROM.write(address, value) and EEPROM.read(address). Limited write cycles (100,000). For larger storage, use I2C EEPROM chips (AT24C256 = 256KB).",
+    formula:"EEPROM.write(addr, val) | EEPROM.read(addr) | EEPROM.put/get for structs",
+    activity:"Save user settings (LED brightness, timer value) to EEPROM. Restore them after power cycling.",
+    quiz:{ q:"EEPROM data is:", opts:["Lost on power off","Preserved without power","Very fast","Large capacity"], ans:1 }},
+  { n:74, cat:"Microcontrollers", title:"ESP8266 Wi-Fi Module",               diff:"Intermediate", time:30, emoji:"📶",
+    concept:"ESP8266 is a low-cost Wi-Fi MCU. NodeMCU boards are popular development platforms. Can act as Wi-Fi client (station) or access point. Includes HTTP, MQTT, WebSocket support. Used for IoT projects, web servers, and cloud connectivity.",
+    formula:"AT command: AT+CWJAP = join AP | AT+CIFSR = get IP address",
+    activity:"Create a web server on ESP8266 that shows temperature readings on a web page accessed from your phone.",
+    quiz:{ q:"ESP8266 is primarily used for:", opts:["High-power computing","Wi-Fi connectivity","Bluetooth","GPS"], ans:1 }},
+  { n:75, cat:"Microcontrollers", title:"ESP32 — IoT Powerhouse",             diff:"Intermediate", time:35, emoji:"🚀",
+    concept:"ESP32: dual-core 240MHz, Wi-Fi + Bluetooth, 38 GPIO, 12-bit ADC, DAC, hall effect sensor, touch pins, RTOS support. More powerful than ESP8266. Used for complex IoT devices, voice recognition, and BLE beacons.",
+    formula:"ESP32 power modes: Active(~160-260mA), Modem-sleep, Light-sleep, Deep-sleep(~10μA)",
+    activity:"Build an ESP32 data logger: read DHT22 sensor, store to SD card, and upload to ThingSpeak every minute.",
+    quiz:{ q:"ESP32 has how many processor cores?", opts:["1","2","4","8"], ans:1 }},
+  { n:76, cat:"Microcontrollers", title:"Raspberry Pi Basics",                diff:"Intermediate", time:35, emoji:"🍓",
+    concept:"Raspberry Pi is a single-board Linux computer, not just a microcontroller. Runs full OS. 40-pin GPIO for hardware. Python is the primary language. Used for media centers, AI edge computing, home automation, and retro gaming.",
+    formula:"GPIO voltage: 3.3V (different from Arduino's 5V!)",
+    activity:"Set up Raspberry Pi OS. Write a Python script that reads a GPIO button and controls an LED.",
+    quiz:{ q:"Raspberry Pi GPIO voltage level is:", opts:["5V","3.3V","12V","1.8V"], ans:1 }},
+  { n:77, cat:"Microcontrollers", title:"FreeRTOS & Multitasking",            diff:"Advanced", time:35, emoji:"⚙️",
+    concept:"FreeRTOS is a real-time operating system for embedded systems. Tasks run with priorities. Semaphores and mutexes prevent resource conflicts. Queues pass data between tasks. ESP32 supports FreeRTOS natively, enabling true parallel execution.",
+    formula:"Task priority: higher number = higher priority | Stack: typically 1024-4096 bytes",
+    activity:"Create an ESP32 FreeRTOS project: Task1 reads sensor every 100ms, Task2 updates display every 500ms.",
+    quiz:{ q:"In FreeRTOS, a higher priority number means the task:", opts:["Runs less often","Has higher priority","Has more memory","Is slower"], ans:1 }},
+  { n:78, cat:"Microcontrollers", title:"OTA Updates & Bootloader",           diff:"Advanced", time:30, emoji:"🔃",
+    concept:"OTA (Over-The-Air) updates allow updating MCU firmware wirelessly. Arduino OTA library for ESP8266/ESP32. Bootloaders enable USB programming without external programmer. ArduinoOTA makes deployment easy in the field.",
+    formula:"OTA transfer: MD5 checksum verification | Two-partition scheme for safe updates",
+    activity:"Add OTA capability to your ESP32 project. Update the firmware wirelessly from Arduino IDE.",
+    quiz:{ q:"OTA update stands for:", opts:["On-The-Air","Over-The-Air","Open-Transition-Activation","Offline-Task-Algorithm"], ans:1 }},
+  { n:79, cat:"Microcontrollers", title:"MQTT Protocol for IoT",              diff:"Intermediate", time:30, emoji:"📨",
+    concept:"MQTT (Message Queue Telemetry Transport) is a lightweight IoT publish-subscribe protocol. Devices publish to topics, brokers distribute to subscribers. Perfect for low-bandwidth, unreliable networks. Mosquitto is a popular free broker. QoS levels 0, 1, 2.",
+    formula:"Topic format: home/bedroom/temperature | QoS 0: fire-and-forget, QoS 1: at-least-once, QoS 2: exactly-once",
+    activity:"Set up a Mosquitto broker. Connect two ESPs: one publishes temperature, other subscribes and controls a fan.",
+    quiz:{ q:"MQTT uses which architecture?", opts:["Client-Server","Peer-to-Peer","Publish-Subscribe","Ring"], ans:2 }},
+  { n:80, cat:"Microcontrollers", title:"Bluetooth & BLE",                    diff:"Intermediate", time:30, emoji:"📡",
+    concept:"Classic Bluetooth: streaming audio, serial data (HC-05 module). BLE (Bluetooth Low Energy): sensors, beacons, wearables with ultra-low power. ESP32 has native BLE. Android/iOS apps connect to BLE devices easily. GATT protocol defines services and characteristics.",
+    formula:"BLE advertising interval: 20ms to 10.24s | Connection range: ~10-100m",
+    activity:"Create a BLE-controlled RGB lamp using ESP32. Control colors from a smartphone app via BLE GATT.",
+    quiz:{ q:"BLE is preferred over Classic Bluetooth for:", opts:["Audio streaming","High bandwidth","Low power sensors","Video"], ans:2 }},
+  { n:81, cat:"Microcontrollers", title:"LCD & OLED Displays",                diff:"Beginner", time:25, emoji:"📺",
+    concept:"16x2 LCD: 16 characters, 2 rows. Uses LiquidCrystal library. I2C adapter reduces wires from 6 to 2. OLED (0.96\" SSD1306): 128x64 pixels, crisp display, I2C. Adafruit GFX library for graphics. Used for debugging and UI.",
+    formula:"LCD: 4-bit or 8-bit parallel | OLED: I2C address 0x3C or 0x3D",
+    activity:"Build a system monitor: display CPU temp, uptime, and sensor readings on OLED with scrolling text.",
+    quiz:{ q:"I2C adapter for LCD reduces pin count from 6 to:", opts:["4","3","2","1"], ans:2 }},
+  { n:82, cat:"Microcontrollers", title:"Touchscreen Interfaces",             diff:"Advanced", time:30, emoji:"👆",
+    concept:"ILI9341 is a popular 2.8\" TFT touchscreen for Arduino. Resistive touch requires calibration. Libraries: Adafruit_ILI9341, TFT_eSPI (faster). Create buttons, menus, and custom UI. ESP32 handles the graphics load better than Arduino Uno.",
+    formula:"Resolution: 320×240 pixels | SPI interface up to 40MHz",
+    activity:"Build a touchscreen weather dashboard using ESP32 + ILI9341: touch city name, show weather data via API.",
+    quiz:{ q:"ILI9341 touchscreen connects via:", opts:["I2C","UART","SPI","Parallel"], ans:2 }},
+  { n:83, cat:"Microcontrollers", title:"NeoPixel & WS2812B LEDs",            diff:"Intermediate", time:25, emoji:"🌈",
+    concept:"WS2812B NeoPixels have integrated RGB LED + driver IC. Control all LEDs with a single data pin using one-wire protocol. Addressable: set each LED's RGB individually. Adafruit NeoPixel library. 5V, ~60mA per LED at full white.",
+    formula:"Data protocol: 1.25μs per bit, 24 bits (GRB) per LED",
+    activity:"Create an animated LED strip: rainbow wave, police lights, reactive sound visualization using 30 NeoPixels.",
+    quiz:{ q:"WS2812B LEDs are called 'addressable' because:", opts:["They have IP addresses","Each LED is individually controllable","They're in a network","They're smart"], ans:1 }},
+  { n:84, cat:"Microcontrollers", title:"SD Card & File Storage",             diff:"Intermediate", time:25, emoji:"💿",
+    concept:"SD cards connect via SPI for data logging. Arduino SD library handles FAT16/FAT32 filesystems. Create, read, write, and delete files. Write speed is limited (~1MB/s). Great for sensor data logging, config files, and MP3 player projects.",
+    formula:"SPI pins: MOSI(11), MISO(12), SCK(13), CS(10) [Arduino Uno default]",
+    activity:"Data logger: read temperature/humidity every minute, write to timestamped CSV file on SD card.",
+    quiz:{ q:"SD cards typically use which interface?", opts:["I2C","UART","SPI","USB"], ans:2 }},
+  { n:85, cat:"Microcontrollers", title:"Watchdog Timer",                     diff:"Advanced", time:25, emoji:"🐕",
+    concept:"A watchdog timer (WDT) resets the MCU if the program hangs or crashes. Must periodically 'pet the dog' by resetting the timer. If code gets stuck, WDT times out and resets system. Essential for reliable embedded systems in production.",
+    formula:"WDT timeout: 15ms to 8s (AVR) | wdt_reset() to feed the watchdog",
+    activity:"Add watchdog timer to your IoT project. Simulate a crash by removing the wdt_reset() call and observe auto-reset.",
+    quiz:{ q:"Watchdog timer helps with:", opts:["Power saving","Program crash recovery","I2C communication","Analog reading"], ans:1 }},
+  { n:86, cat:"Microcontrollers", title:"Low Power & Sleep Modes",            diff:"Advanced", time:30, emoji:"💤",
+    concept:"Battery-powered devices must minimize power consumption. Arduino sleep modes: Idle, ADC noise reduction, Power-save, Standby, Power-down (0.1μA). Wake on interrupt or timer. ESP32 deep sleep uses RTC memory to retain state.",
+    formula:"ESP32 deep sleep: esp_sleep_enable_timer_wakeup(60 × 1000000) [60 seconds]",
+    activity:"Optimize a battery-powered sensor node to run for 1 year on 2× AA batteries using deep sleep.",
+    quiz:{ q:"Deep sleep in microcontrollers reduces current to around:", opts:["100mA","1mA","0.1μA to 10μA","0A"], ans:2 }},
+
+  // Projects (87-101)
+  { n:87, cat:"Projects", title:"Digital Voltmeter",                          diff:"Beginner", time:45, emoji:"📏",
+    concept:"Build a digital voltmeter using Arduino and a voltage divider for input scaling. The 10-bit ADC reads voltage, scales it mathematically, and displays on LCD. Add multi-range switching for 0-5V, 0-12V, and 0-50V ranges.",
+    formula:"V_actual = (ADC_reading / 1023.0) × V_ref × (R1+R2)/R2",
+    activity:"Complete project: voltage divider circuit + Arduino Uno + 16x2 LCD + range switch. Test with known voltages.",
+    quiz:{ q:"To measure 12V with Arduino (5V ADC), you need:", opts:["Amplifier","Voltage divider","Inverter","Transformer"], ans:1 }},
+  { n:88, cat:"Projects", title:"Smart Weather Station",                      diff:"Intermediate", time:60, emoji:"🌦️",
+    concept:"Complete IoT weather station: DHT22 (temp/humidity) + BMP280 (pressure/altitude) + LDR (light) + Rain sensor. Data displayed on OLED and uploaded to ThingSpeak via ESP8266 for remote monitoring and graphing.",
+    formula:"Heat Index = -42.379 + 2.04901523T + 10.14333127H - ... (NWS formula)",
+    activity:"Build full weather station. Upload to ThingSpeak. Create channel dashboard with 5 graphs. Add alerts.",
+    quiz:{ q:"ThingSpeak is used for:", opts:["Programming","IoT data visualization","PCB design","Simulation"], ans:1 }},
+  { n:89, cat:"Projects", title:"Home Automation System",                     diff:"Advanced", time:90, emoji:"🏠",
+    concept:"Control home appliances via web interface or Blynk app. ESP32 controls relays for lights/fan. PIR sensor auto-controls lights. Voice control via Google Assistant + IFTTT. Create schedules and automation rules.",
+    formula:"IFTTT webhook: POST https://maker.ifttt.com/trigger/{event}/with/key/{key}",
+    activity:"Complete home automation: 4-relay board, web dashboard, PIR auto-lights, mobile app, and schedules.",
+    quiz:{ q:"IFTTT stands for:", opts:["Internet For Technology Tasks","If This Then That","Integrated Fast Task Technology","Internet Firmware Transfer Tool"], ans:1 }},
+  { n:90, cat:"Projects", title:"Line Following Robot",                       diff:"Intermediate", time:60, emoji:"🤖",
+    concept:"2-wheel robot with IR sensors follows a black line. PID control algorithm reduces oscillation. Motor driver L298N controls speed independently. Calibrate sensor threshold per floor color. Add speed adjustment based on curve detection.",
+    formula:"PID: output = Kp×error + Ki×∫error×dt + Kd×d(error)/dt",
+    activity:"Build, program, and tune a line follower. Achieve < 5cm deviation on a figure-8 track at full speed.",
+    quiz:{ q:"PID control helps line followers by:", opts:["Going faster","Reducing oscillation","Saving power","Adding WiFi"], ans:1 }},
+  { n:91, cat:"Projects", title:"Obstacle Avoidance Robot",                   diff:"Intermediate", time:60, emoji:"🚗",
+    concept:"Autonomous robot with ultrasonic sensor on servo scans 180°. Algorithm: if obstacle < 20cm, stop, scan left/right, turn to clearest path. Add IR cliff sensors to prevent falling. L298N motor driver, optional Bluetooth control.",
+    formula:"Scan algorithm: measure at -90°, 0°, +90°, choose max distance direction",
+    activity:"Build obstacle avoidance robot. Add maze-solving capability using right-hand rule algorithm.",
+    quiz:{ q:"Servo is used on the ultrasonic sensor to:", opts:["Power it","Scan 180° directions","Filter noise","Amplify signal"], ans:1 }},
+  { n:92, cat:"Projects", title:"RFID Smart Door Lock",                       diff:"Advanced", time:75, emoji:"🔐",
+    concept:"MFRC522 RFID + servo lock + admin mode for enrolling cards. Stores authorized UIDs in EEPROM. LED and buzzer feedback. Optional keypad backup. LCD shows welcome/denied. Log entries to SD card with timestamp.",
+    formula:"UID comparison: 4-byte array match | EEPROM: store up to 20 card UIDs",
+    activity:"Complete door lock system with enrollment mode, 10 authorized cards, log, and LCD display.",
+    quiz:{ q:"RFID card UIDs are stored in:", opts:["Flash","RAM","EEPROM","SD card"], ans:2 }},
+  { n:93, cat:"Projects", title:"Arduino Oscilloscope",                       diff:"Advanced", time:60, emoji:"📈",
+    concept:"Arduino can sample at ~10kSPS (thousands of samples per second), enabling visualization of audio and low-frequency signals. Display waveform on TFT screen. Implement triggering, time/division scaling, and frequency measurement.",
+    formula:"Max frequency: F_sample / 2 (Nyquist) ≈ 5kHz for Arduino Uno",
+    activity:"Build a 2-channel oscilloscope with ILI9341 display, automatic triggering, and frequency counter.",
+    quiz:{ q:"Nyquist theorem states sampling must be:", opts:["Equal to signal frequency","Half of signal frequency","Twice the signal frequency","100× the frequency"], ans:2 }},
+  { n:94, cat:"Projects", title:"Bluetooth Speaker",                          diff:"Intermediate", time:60, emoji:"🔊",
+    concept:"PAM8403 3W audio amplifier + Bluetooth module (or A2DP on ESP32). Design proper speaker enclosure for bass. Add equalizer, volume control with rotary encoder, and LED VU meter. Powered by Li-Po battery with TP4056 charging module.",
+    formula:"Speaker impedance: 4Ω or 8Ω | P_max = V²/(4R) for class B amp",
+    activity:"Build complete BT speaker: ESP32 A2DP + PAM8610 amp + 2×3W speakers + VU meter + LED ring.",
+    quiz:{ q:"A2DP in Bluetooth is used for:", opts:["Data transfer","Audio streaming","Control","GPS"], ans:1 }},
+  { n:95, cat:"Projects", title:"ESP32 Camera Surveillance",                  diff:"Advanced", time:90, emoji:"📷",
+    concept:"ESP32-CAM streams MJPEG video over Wi-Fi. Access stream from any browser on the network. Add motion detection in software. Store snapshots to SD card. Optional: face recognition, night mode with IR LEDs.",
+    formula:"MJPEG: series of JPEG frames | Streaming: multipart/x-mixed-replace content type",
+    activity:"Deploy 2 ESP32-CAM units. Build a Node.js server that receives and saves snapshots when motion detected.",
+    quiz:{ q:"ESP32-CAM streams video using:", opts:["H.264","MJPEG","MP4","AVI"], ans:1 }},
+  { n:96, cat:"Projects", title:"CNC Plotter / Drawing Robot",                diff:"Advanced", time:120, emoji:"✏️",
+    concept:"2-axis CNC plotter uses 2 stepper motors + A4988 drivers on a belt/lead screw system. G-code interpreter reads drawing commands. Servo lifts/lowers pen. GRBL firmware on Arduino handles motion control with acceleration.",
+    formula:"Steps per mm = (steps/rev × microsteps) / (pitch_mm)",
+    activity:"Build a mini CNC plotter. Draw the ElectroLearn logo from G-code. Achieve ±0.5mm accuracy.",
+    quiz:{ q:"GRBL firmware is used for:", opts:["Bluetooth","CNC motion control","Wi-Fi","Audio"], ans:1 }},
+  { n:97, cat:"Projects", title:"Self-Balancing Robot",                       diff:"Advanced", time:120, emoji:"🎪",
+    concept:"Uses MPU6050 + PID algorithm to balance a 2-wheeled robot. Kalman filter fuses accelerometer and gyroscope for accurate angle. Fast PID loop (100Hz+). Motor driver DRV8835 or TB6612. Add BT for remote driving while balancing.",
+    formula:"Balance angle ≈ 0° (upright) | PID corrects motor speed to maintain equilibrium",
+    activity:"Build and tune a self-balancing robot. Achieve stable balance for 60+ seconds. Add Bluetooth drive mode.",
+    quiz:{ q:"Kalman filter in self-balancing robots is used to:", opts:["Amplify sensor","Fuse and filter IMU data","Control motors","Store data"], ans:1 }},
+  { n:98, cat:"Projects", title:"Solar Power Monitor",                        diff:"Intermediate", time:60, emoji:"☀️",
+    concept:"Monitor a solar panel system: INA219 measures panel voltage/current, battery state of charge estimation, MPPT concept, data logging to SD card and cloud. ESP32 displays stats on OLED and sends daily reports via email.",
+    formula:"SOC = (V_battery - V_min) / (V_max - V_min) × 100%",
+    activity:"Monitor a 6V solar panel: log hourly production, peak watt-hours, and efficiency over one week.",
+    quiz:{ q:"MPPT stands for:", opts:["Maximum Power Point Tracking","Minimum Power Protection Technology","Motor Power Processing Terminal","Multiple Photon Precision Tracking"], ans:0 }},
+  { n:99,  cat:"Projects", title:"AI Edge Inference with TensorFlow Lite",    diff:"Advanced", time:90, emoji:"🧠",
+    concept:"TensorFlow Lite for Microcontrollers runs trained ML models on MCUs. Applications: keyword detection ('Hey Arduino!'), gesture recognition, anomaly detection. Models must be quantized and optimized. Runs on ESP32 or Arduino Nano 33 BLE.",
+    formula:"Model size budget: < available Flash | Inference: forward pass only",
+    activity:"Deploy a TFLite keyword detection model on Arduino Nano 33 BLE. Trigger LED on 'yes', turn off on 'no'.",
+    quiz:{ q:"TensorFlow Lite for MCUs primarily uses:", opts:["Full float models","Quantized models","Cloud inference","GPU"], ans:1 }},
+  { n:100, cat:"Projects", title:"Complete IoT Dashboard",                    diff:"Advanced", time:120, emoji:"📊",
+    concept:"Build an end-to-end IoT system: multiple ESP32 sensor nodes → MQTT broker (Mosquitto) → Node-RED (processing) → InfluxDB (storage) → Grafana (visualization). Real-time dashboard with alerts, historical data, and remote control.",
+    formula:"Full stack: ESP32 → MQTT → Node-RED → InfluxDB → Grafana",
+    activity:"Deploy 3 sensor nodes. Build Grafana dashboard with 10 panels, set 5 alert rules, and control relays remotely.",
+    quiz:{ q:"Grafana is primarily used for:", opts:["Programming MCUs","Data visualization dashboards","PCB design","Audio processing"], ans:1 }},
+  { n:101, cat:"Projects", title:"Capstone: Your Electronics Portfolio",      diff:"Advanced", time:180, emoji:"🏆",
+    concept:"Final capstone project: design and build your own original electronics project from scratch. Requirements: uses at least 1 sensor, 1 actuator, 1 communication protocol, and a user interface. Document the design, build process, and learnings.",
+    formula:"Engineering process: Ideate → Design → Prototype → Test → Refine → Document",
+    activity:"Build, document, and present your original project. Create a GitHub repo, schematic, BOM, and demo video.",
+    quiz:{ q:"What defines a successful electronics portfolio project?", opts:["Complexity only","Cost","Solves a real problem elegantly","Number of components"], ans:2 }},
+];
+
+function generateCourse(age, level, goal) {
+  let sessions = [...SESSION_DATA];
+  // Adaptive: filter by difficulty based on user profile
+  const levelMap = { Beginner: ["Beginner"], Intermediate: ["Beginner","Intermediate"], Advanced: ["Beginner","Intermediate","Advanced"] };
+  const allowed = levelMap[level] || ["Beginner"];
+  // Don't filter, but flag appropriate ones
+  return sessions.map(s => ({
+    ...s,
+    recommended: allowed.includes(s.diff),
+    xpReward: s.diff === "Beginner" ? 50 : s.diff === "Intermediate" ? 100 : 200,
+  }));
+}
+
+// ============================================================
+//  LEADERBOARD SCORING ALGORITHM
+// ============================================================
+function calculateLearningScore({ xp, completedSessions, quizAccuracy, streakDays }) {
+  const progress = Math.min(completedSessions / 101, 1) * 400;
+  const accuracy = (quizAccuracy || 0) * 3;
+  const consistency = Math.min(streakDays, 30) * 10;
+  return Math.round(progress + accuracy + consistency + (xp * 0.1));
+}
+
+// ============================================================
+//  APP STATE (localStorage-backed)
+// ============================================================
+const STORAGE_KEY = 'electrolearn_v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
+function saveState(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+// ============================================================
+//  MOCK USERS FOR LEADERBOARD
+// ============================================================
+const MOCK_USERS = [
+  { name:"Arjun K",   xp:12400, completed:78, accuracy:95, streak:45, age:22 },
+  { name:"Sarah M",   xp:11200, completed:71, accuracy:92, streak:38, age:17 },
+  { name:"Dev P",     xp:10800, completed:65, accuracy:88, streak:30, age:25 },
+  { name:"Lily C",    xp:9600,  completed:58, accuracy:91, streak:22, age:16 },
+  { name:"Rahul S",   xp:8900,  completed:52, accuracy:85, streak:18, age:28 },
+  { name:"Emma W",    xp:7800,  completed:45, accuracy:89, streak:14, age:19 },
+  { name:"Kiran T",   xp:6500,  completed:38, accuracy:82, streak:10, age:24 },
+  { name:"Alex R",    xp:5200,  completed:29, accuracy:78, streak:7,  age:21 },
+  { name:"Priya N",   xp:3800,  completed:20, accuracy:75, streak:4,  age:15 },
+  { name:"Tom B",     xp:2100,  completed:12, accuracy:70, streak:2,  age:30 },
+];
+
+// ============================================================
+//  MOCK DISCUSSIONS
+// ============================================================
+function initPosts() {
+  return [
+    { id:1, userId:"user1", userName:"Arjun K", avatar:"AK", roomId:"Basic Electricity", content:"How do I remember resistor color codes? Any tricks?", upvotes:12, replies:[
+      { id:11, userId:"user2", userName:"Sarah M", avatar:"SM", content:"BB ROY of Great Britain has Very Good Wife — Brown Black Red Orange Yellow Green Blue Violet Grey White!", upvotes:8, createdAt: Date.now()-3600000 },
+      { id:12, userId:"user3", userName:"Dev P", avatar:"DP", content:"Just use a multimeter to measure them directly! Color codes are for when the bands are hard to read.", upvotes:5, createdAt: Date.now()-1800000 },
+    ], createdAt: Date.now()-86400000 },
+    { id:2, userId:"user2", userName:"Lily C", avatar:"LC", roomId:"Components", content:"Why does my 9V battery drain so fast with the Arduino?", upvotes:9, replies:[
+      { id:21, userId:"user4", userName:"Rahul S", avatar:"RS", content:"Arduino Uno uses ~50mA idle. A 9V battery is only ~500mAh so it lasts ~10 hours. Use a USB power bank instead!", upvotes:11, createdAt: Date.now()-7200000 },
+    ], createdAt: Date.now()-172800000 },
+    { id:3, userId:"user3", userName:"Dev P", avatar:"DP", roomId:"Microcontrollers", content:"ESP32 vs ESP8266 — which should a beginner start with?", upvotes:15, replies:[
+      { id:31, userId:"user1", userName:"Arjun K", avatar:"AK", content:"Start with ESP8266 if you're on a budget. Move to ESP32 when you need Bluetooth, more GPIOs, or dual-core processing.", upvotes:7, createdAt: Date.now()-900000 },
+    ], createdAt: Date.now()-259200000 },
+    { id:4, userId:"user5", userName:"Emma W", avatar:"EW", roomId:"Circuits", content:"My solder joints look cold/dull. What am I doing wrong?", upvotes:6, replies:[
+      { id:41, userId:"user2", userName:"Sarah M", avatar:"SM", content:"Use more flux, heat the PAD not the solder, and let the joint cool naturally. Cold joints usually mean insufficient heat or moving before solidifying.", upvotes:9, createdAt: Date.now()-1200000 },
+    ], createdAt: Date.now()-43200000 },
+  ];
+}
+
+// ============================================================
+//  CONTEXT
+// ============================================================
+const AppContext = createContext();
+
+function AppProvider({ children }) {
+  const [state, setState] = useState(() => {
+    const saved = loadState();
+    return saved || {
+      screen: 'auth',
+      authMode: 'login',
+      user: null,
+      onboardStep: 0,
+      sessions: [],
+      currentSessionIdx: null,
+      quizState: null,
+      posts: initPosts(),
+      theme: { accent: '#00e5ff', mode: 'dark' },
+      toast: null,
+      sidebarOpen: false,
+      activePage: 'dashboard',
+      activeTab: 0,
+      selectedPost: null,
+      confetti: false,
+    };
+  });
+
+  const update = useCallback((patch) => {
+    setState(prev => {
+      const next = typeof patch === 'function' ? patch(prev) : { ...prev, ...patch };
+      saveState(next);
+      return next;
+    });
+  }, []);
+
+  // Apply theme to CSS vars
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute('data-theme', state.theme.mode);
+    root.style.setProperty('--accent', state.theme.accent);
+  }, [state.theme]);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (state.toast) {
+      const t = setTimeout(() => update({ toast: null }), 3500);
+      return () => clearTimeout(t);
+    }
+  }, [state.toast]);
+
+  const showToast = (msg, type='success') => update({ toast: { msg, type } });
+
+  return (
+    <AppContext.Provider value={{ state, update, showToast }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+function useApp() { return useContext(AppContext); }
+
+// ============================================================
+//  AUTH PAGE
+// ============================================================
+function AuthPage() {
+  const { state, update, showToast } = useApp();
+  const [form, setForm] = useState({ email:'', password:'', name:'' });
+  const [loading, setLoading] = useState(false);
+  const isLogin = state.authMode === 'login';
+
+  function handleSubmit() {
+    if (!form.email || !form.password) { showToast('Please fill all fields', 'error'); return; }
+    if (!isLogin && !form.name) { showToast('Please enter your name', 'error'); return; }
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      const user = {
+        id: 'u_' + Date.now(),
+        name: form.name || form.email.split('@')[0],
+        email: form.email,
+        xp: 0, streak: 3, completedSessions: [],
+        quizScores: [], age: null, level: null, goal: null,
+        joined: new Date().toLocaleDateString(),
+      };
+      update({ user, screen: 'onboard', onboardStep: 0 });
+    }, 1000);
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-bg" />
+      <div className="auth-grid" />
+      <div className="auth-box">
+        <div className="auth-logo">
+          <div className="auth-logo-icon">⚡</div>
+          <div className="auth-title">ElectroLearn</div>
+          <div className="auth-sub">{isLogin ? 'Welcome back, maker!' : 'Start your electronics journey'}</div>
+        </div>
+        {!isLogin && (
+          <div className="form-group">
+            <label className="label">Your Name</label>
+            <input className="input" placeholder="Ada Lovelace" value={form.name} onChange={e => setForm(p => ({...p,name:e.target.value}))} />
+          </div>
+        )}
+        <div className="form-group">
+          <label className="label">Email</label>
+          <input className="input" type="email" placeholder="you@example.com" value={form.email} onChange={e => setForm(p => ({...p,email:e.target.value}))} />
+        </div>
+        <div className="form-group">
+          <label className="label">Password</label>
+          <input className="input" type="password" placeholder="••••••••" value={form.password} onChange={e => setForm(p => ({...p,password:e.target.value}))} />
+        </div>
+        <button className="btn btn-primary btn-lg" style={{width:'100%',justifyContent:'center'}} onClick={handleSubmit} disabled={loading}>
+          {loading ? <span className="loader" /> : (isLogin ? '🔐 Sign In' : '🚀 Create Account')}
+        </button>
+        <div className="auth-switch">
+          {isLogin ? <>Don't have an account? <span onClick={() => update({authMode:'signup'})}>Sign up free</span></> : <>Already a maker? <span onClick={() => update({authMode:'login'})}>Sign in</span></>}
+        </div>
+        <div className="divider" />
+        <div style={{textAlign:'center'}}>
+          <button className="btn btn-secondary" style={{width:'100%',justifyContent:'center'}} onClick={() => {
+            update({ user:{ id:'demo', name:'Demo User', email:'demo@electrolearn.io', xp:2400, streak:7, completedSessions:[...Array(12).keys()], quizScores:[85,90,78,95,88,92,70,100,88,76,94,82], age:21, level:'Intermediate', goal:'Career', joined:'Today' }, screen:'app', activePage:'dashboard', sessions: generateCourse(21,'Intermediate','Career') });
+          }}>
+            ⚡ Try Demo Account
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  ONBOARDING
+// ============================================================
+function OnboardPage() {
+  const { state, update, showToast } = useApp();
+  const [age, setAge] = useState('');
+  const [level, setLevel] = useState('');
+  const [goal, setGoal] = useState('');
+  const step = state.onboardStep || 0;
+
+  function next() {
+    if (step === 0 && !age) { showToast('Please enter your age', 'error'); return; }
+    if (step === 1 && !level) { showToast('Please select a level', 'error'); return; }
+    if (step === 2 && !goal) { showToast('Please select a goal', 'error'); return; }
+    if (step < 2) { update({ onboardStep: step+1 }); return; }
+    const sessions = generateCourse(parseInt(age), level, goal);
+    const updatedUser = { ...state.user, age: parseInt(age), level, goal };
+    update({ user: updatedUser, sessions, screen: 'app', activePage: 'dashboard' });
+    showToast('🎉 Your course is ready!');
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-bg" />
+      <div className="auth-grid" />
+      <div className="auth-box" style={{maxWidth:540}}>
+        <div className="steps">
+          {[0,1,2].map(i => (
+            <React.Fragment key={i}>
+              {i > 0 && <div className={`step-line ${i <= step ? 'done':''}`} />}
+              <div className={`step-dot ${i < step ? 'done' : i===step ? 'active' : ''}`}>
+                {i < step ? '✓' : i+1}
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
+
+        {step === 0 && (
+          <div className="onboard-step">
+            <div style={{fontSize:48,marginBottom:12,textAlign:'center'}}>🎂</div>
+            <div className="auth-title" style={{textAlign:'center',marginBottom:8}}>How old are you?</div>
+            <div className="auth-sub" style={{textAlign:'center',marginBottom:28}}>We'll personalize your learning experience</div>
+            <input className="input" type="number" min="6" max="99" placeholder="Enter your age" value={age} onChange={e => setAge(e.target.value)} style={{textAlign:'center',fontSize:24,fontFamily:'var(--font-mono)'}} />
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="onboard-step">
+            <div style={{fontSize:48,marginBottom:12,textAlign:'center'}}>📊</div>
+            <div className="auth-title" style={{textAlign:'center',marginBottom:8}}>Your skill level?</div>
+            <div className="auth-sub" style={{textAlign:'center',marginBottom:28}}>Be honest — we'll match the content perfectly</div>
+            <div className="choice-grid">
+              {[
+                { v:'Beginner', icon:'🌱', desc:'Just starting out' },
+                { v:'Intermediate', icon:'⚡', desc:'Know the basics' },
+                { v:'Advanced', icon:'🔥', desc:'Ready for challenges' },
+              ].map(opt => (
+                <button key={opt.v} className={`choice-btn ${level===opt.v?'active':''}`} onClick={() => setLevel(opt.v)}>
+                  <div className="choice-icon">{opt.icon}</div>
+                  <div style={{fontWeight:700}}>{opt.v}</div>
+                  <div style={{fontSize:12,color:'var(--text3)',marginTop:4}}>{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="onboard-step">
+            <div style={{fontSize:48,marginBottom:12,textAlign:'center'}}>🎯</div>
+            <div className="auth-title" style={{textAlign:'center',marginBottom:8}}>What's your goal?</div>
+            <div className="auth-sub" style={{textAlign:'center',marginBottom:28}}>This shapes the projects we recommend</div>
+            <div className="choice-grid">
+              {[
+                { v:'Hobby', icon:'🎮', desc:'Fun & creative making' },
+                { v:'School', icon:'📚', desc:'Academic learning' },
+                { v:'Career', icon:'💼', desc:'Professional skills' },
+              ].map(opt => (
+                <button key={opt.v} className={`choice-btn ${goal===opt.v?'active':''}`} onClick={() => setGoal(opt.v)}>
+                  <div className="choice-icon">{opt.icon}</div>
+                  <div style={{fontWeight:700}}>{opt.v}</div>
+                  <div style={{fontSize:12,color:'var(--text3)',marginTop:4}}>{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button className="btn btn-primary btn-lg" style={{width:'100%',justifyContent:'center',marginTop:28}} onClick={next}>
+          {step < 2 ? 'Continue →' : '🚀 Launch My Course!'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  SIDEBAR
+// ============================================================
+function Sidebar() {
+  const { state, update } = useApp();
+  const { user, activePage, sidebarOpen } = state;
+  if (!user) return null;
+
+  const navItems = [
+    { id:'dashboard', icon:'🏠', label:'Dashboard' },
+    { id:'sessions', icon:'📚', label:'My Course', badge: user.completedSessions?.length > 0 ? `${user.completedSessions.length}/101` : null },
+    { id:'projects', icon:'🔧', label:'Projects' },
+    { id:'tools', icon:'🔬', label:'Tools' },
+    { id:'discussion', icon:'💬', label:'Discussion' },
+    { id:'leaderboard', icon:'🏆', label:'Leaderboard' },
+    { id:'settings', icon:'⚙️', label:'Settings' },
+  ];
+
+  return (
+    <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <div className="sidebar-logo">
+        <div className="logo-icon">⚡</div>
+        <div className="logo-text">Electro<span>Learn</span></div>
+      </div>
+      <nav className="sidebar-nav">
+        <div className="nav-section-label">Navigation</div>
+        {navItems.map(item => (
+          <button key={item.id} className={`nav-item ${activePage===item.id?'active':''}`}
+            onClick={() => update({ activePage: item.id, sidebarOpen: false, currentSessionIdx: null })}>
+            <span className="nav-icon">{item.icon}</span>
+            {item.label}
+            {item.badge && <span className="nav-badge">{item.badge}</span>}
+          </button>
+        ))}
+      </nav>
+      <div className="sidebar-footer">
+        <div className="user-card" onClick={() => update({ activePage:'settings' })}>
+          <div className="avatar">{user.name?.charAt(0)?.toUpperCase() || 'U'}</div>
+          <div className="user-info">
+            <div className="user-name">{user.name}</div>
+            <div className="user-level">{user.level || 'Setting up...'} · {user.xp?.toLocaleString() || 0} XP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  TOPBAR
+// ============================================================
+function Topbar({ title }) {
+  const { state, update } = useApp();
+  const titles = {
+    dashboard:'Dashboard', sessions:'My Course', projects:'Projects',
+    tools:'Tool Library', discussion:'Community', leaderboard:'Leaderboard', settings:'Settings'
+  };
+  return (
+    <div className="topbar">
+      <button className="btn-icon mobile-toggle" onClick={() => update({sidebarOpen:!state.sidebarOpen})}>☰</button>
+      <div className="topbar-title">{title || titles[state.activePage] || 'ElectroLearn'}</div>
+      <div className="topbar-actions">
+        <div className="streak-fire">🔥 {state.user?.streak || 0}d</div>
+        <button className="btn-icon" style={{fontSize:16,color:'var(--accent)'}} title="XP">
+          ⭐ {(state.user?.xp || 0).toLocaleString()}
+        </button>
+        <button className="btn-icon" onClick={() => update({ user: null, screen:'auth', activePage:'dashboard' })}>⏻</button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  DASHBOARD
+// ============================================================
+function Dashboard() {
+  const { state, update } = useApp();
+  const { user, sessions } = state;
+  if (!user) return null;
+
+  const completed = user.completedSessions?.length || 0;
+  const progress = Math.round((completed / 101) * 100);
+  const nextIdx = sessions.findIndex(s => !user.completedSessions?.includes(s.n));
+  const nextSession = sessions[nextIdx >= 0 ? nextIdx : 0];
+  const avgAccuracy = user.quizScores?.length > 0
+    ? Math.round(user.quizScores.reduce((a,b) => a+b, 0) / user.quizScores.length) : 0;
+  const score = calculateLearningScore({ xp: user.xp, completedSessions: completed, quizAccuracy: avgAccuracy, streakDays: user.streak });
+
+  const stats = [
+    { val: completed, label:'Sessions Done', icon:'📚' },
+    { val: `${progress}%`, label:'Course Progress', icon:'📈' },
+    { val: `${user.streak}d`, label:'Current Streak', icon:'🔥' },
+    { val: score.toLocaleString(), label:'Learning Score', icon:'⭐' },
+  ];
+
+  // Circular progress SVG
+  const r = 54; const c = 2 * Math.PI * r;
+  const dash = c - (c * progress / 100);
+
+  return (
+    <div className="page-content">
+      {/* Welcome */}
+      <div className="dashboard-welcome">
+        <div style={{display:'flex',alignItems:'center',gap:24,flexWrap:'wrap'}}>
+          <div style={{flex:1}}>
+            <div className="welcome-name">Hey, {user.name?.split(' ')[0]}! 👋</div>
+            <div className="welcome-sub">
+              {completed === 0 ? "Ready to start your electronics journey? Let's go!" :
+               completed < 20 ? `Great start! ${101-completed} sessions left to mastery.` :
+               completed < 50 ? `You're crushing it! Halfway point approaching.` :
+               completed < 80 ? `Incredible progress! You're an electronics wizard! 🧙` :
+               `Almost done! ${101-completed} sessions until completion! 🏆`}
+            </div>
+            {nextSession && (
+              <button className="btn btn-primary" style={{marginTop:16}} onClick={() => update({ activePage:'sessions', currentSessionIdx: nextSession.n - 1 })}>
+                ▶ Continue: {nextSession.title}
+              </button>
+            )}
+          </div>
+          {/* Circular progress */}
+          <div className="circle-progress">
+            <svg width="140" height="140">
+              <circle cx="70" cy="70" r={r} fill="none" stroke="var(--bg3)" strokeWidth="8" />
+              <circle cx="70" cy="70" r={r} fill="none" stroke="var(--accent)" strokeWidth="8"
+                strokeDasharray={c} strokeDashoffset={dash}
+                strokeLinecap="round"
+                transform="rotate(-90 70 70)"
+                style={{transition:'stroke-dashoffset 1s ease'}} />
+            </svg>
+            <div className="circle-inner">
+              <div className="circle-val">{progress}%</div>
+              <div className="circle-unit">complete</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="section">
+        <div className="grid-4">
+          {stats.map((s,i) => (
+            <div key={i} className="stat-card" style={{animationDelay:`${i*0.1}s`}}>
+              <div className="stat-icon">{s.icon}</div>
+              <div className="stat-value">{s.val}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* XP Breakdown */}
+      <div className="section">
+        <div className="section-head">
+          <div className="section-title">📊 Progress Breakdown</div>
+        </div>
+        <div className="card">
+          <div className="grid-2" style={{gap:32}}>
+            <div>
+              <div style={{marginBottom:16}}>
+                {TOPICS.map(t => {
+                  const topicSessions = sessions.filter(s => s.cat === t.cat);
+                  const doneCount = topicSessions.filter(s => user.completedSessions?.includes(s.n)).length;
+                  const pct = Math.round((doneCount / t.sessions) * 100);
+                  return (
+                    <div key={t.cat} className="xp-row">
+                      <div className="xp-label" style={{minWidth:140,fontSize:13}}>{t.cat}</div>
+                      <div className="xp-bar-wrap">
+                        <div className="progress-wrap">
+                          <div className="progress-fill" style={{width:`${pct}%`}} />
+                        </div>
+                      </div>
+                      <div className="xp-val">{doneCount}/{t.sessions}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize:14,fontWeight:600,marginBottom:12,color:'var(--text2)'}}>📅 This Week</div>
+              {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d,i) => {
+                const active = i < (user.streak || 0);
+                return (
+                  <span key={d} style={{display:'inline-block',width:32,height:32,lineHeight:'32px',textAlign:'center',borderRadius:8,fontSize:12,fontWeight:600,margin:2,background:active?'rgba(0,229,255,0.2)':' var(--bg3)',color:active?'var(--accent)':'var(--text3)'}}>
+                    {active ? '✓' : d[0]}
+                  </span>
+                );
+              })}
+              <div style={{marginTop:16}}>
+                <div style={{fontSize:13,color:'var(--text2)',marginBottom:8}}>Quiz Accuracy</div>
+                <div style={{fontSize:32,fontFamily:'var(--font-mono)',color: avgAccuracy >= 80 ? 'var(--green)' : avgAccuracy >= 60 ? 'var(--yellow)' : 'var(--red)'}}>{avgAccuracy}%</div>
+                <div className="progress-wrap" style={{marginTop:8}}>
+                  <div className="progress-fill" style={{width:`${avgAccuracy}%`,background:`linear-gradient(90deg,var(--accent),var(--green))`}} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Sessions */}
+      <div className="section">
+        <div className="section-head">
+          <div className="section-title">⚡ Recently Completed</div>
+          <button className="btn btn-ghost btn-sm" onClick={() => update({activePage:'sessions'})}>View All →</button>
+        </div>
+        {completed === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📭</div>
+            <div className="empty-title">No sessions completed yet</div>
+            <div className="empty-sub">Start Session 1 to begin your journey!</div>
+            <button className="btn btn-primary" style={{marginTop:16}} onClick={() => update({activePage:'sessions'})}>Start Learning →</button>
+          </div>
+        ) : (
+          <div>
+            {sessions.filter(s => user.completedSessions?.includes(s.n)).slice(-4).reverse().map(s => (
+              <div key={s.n} className="session-list-item completed" onClick={() => update({ activePage:'sessions', currentSessionIdx: s.n-1 })}>
+                <div className="session-num done">✓</div>
+                <div className="session-info">
+                  <div className="session-name">{s.title}</div>
+                  <div className="session-meta"><span>{s.cat}</span><span>⏱ {s.time} min</span></div>
+                </div>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <span className={`badge badge-${s.diff==='Beginner'?'green':s.diff==='Intermediate'?'yellow':'red'}`}>{s.diff}</span>
+                  <span style={{fontFamily:'var(--font-mono)',fontSize:12,color:'var(--accent)'}}>+{s.xpReward} XP</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  SESSIONS PAGE
+// ============================================================
+function SessionsPage() {
+  const { state, update } = useApp();
+  const { user, sessions, currentSessionIdx } = state;
+  const [catFilter, setCatFilter] = useState('All');
+  const cats = ['All', ...TOPICS.map(t => t.cat)];
+
+  if (currentSessionIdx !== null && currentSessionIdx !== undefined) {
+    return <SessionDetail idx={currentSessionIdx} />;
+  }
+
+  const filtered = catFilter === 'All' ? sessions : sessions.filter(s => s.cat === catFilter);
+
+  return (
+    <div className="page-content">
+      <div className="section-head">
+        <div className="section-title">📚 Your 101-Session Course</div>
+        <div style={{fontSize:14,color:'var(--text2)'}}>
+          {user?.completedSessions?.length || 0} / 101 completed
+        </div>
+      </div>
+
+      <div className="cat-pills">
+        {cats.map(c => (
+          <button key={c} className={`cat-pill ${catFilter===c?'active':''}`} onClick={() => setCatFilter(c)}>{c}</button>
+        ))}
+      </div>
+
+      <div>
+        {filtered.map((s, i) => {
+          const done = user?.completedSessions?.includes(s.n);
+          const isNext = !done && (s.n === 1 || user?.completedSessions?.includes(s.n - 1));
+          const locked = !done && !isNext && s.n > 1 && !user?.completedSessions?.includes(s.n - 1);
+          return (
+            <div key={s.n} className={`session-list-item ${done?'completed':''} ${locked?'locked':''}`}
+              onClick={() => !locked && update({ currentSessionIdx: s.n - 1 })}>
+              <div className={`session-num ${done?'done':isNext?'active':''}`}>
+                {done ? '✓' : locked ? '🔒' : s.n}
+              </div>
+              <div className="session-info">
+                <div className="session-name">{s.emoji} {s.title}</div>
+                <div className="session-meta">
+                  <span>{s.cat}</span>
+                  <span>⏱ {s.time} min</span>
+                  {done && <span style={{color:'var(--green)'}}>Completed</span>}
+                  {isNext && <span style={{color:'var(--accent)'}}>▶ Next up</span>}
+                  {locked && <span style={{color:'var(--text3)'}}>Complete previous session</span>}
+                </div>
+              </div>
+              <div style={{display:'flex',gap:8,alignItems:'center',flexShrink:0}}>
+                <span className={`badge badge-${s.diff==='Beginner'?'green':s.diff==='Intermediate'?'yellow':'red'}`}>{s.diff}</span>
+                <span style={{fontFamily:'var(--font-mono)',fontSize:12,color:done?'var(--green)':'var(--accent)'}}>+{s.xpReward} XP</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  SESSION DETAIL
+// ============================================================
+function SessionDetail({ idx }) {
+  const { state, update, showToast } = useApp();
+  const { user, sessions } = state;
+  const session = sessions[idx];
+  const [tab, setTab] = useState(0);
+  const [selectedOpt, setSelectedOpt] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const done = user?.completedSessions?.includes(session?.n);
+
+  if (!session) return null;
+
+  function submitQuiz() {
+    if (selectedOpt === null) return;
+    setSubmitted(true);
+    const correct = selectedOpt === session.quiz.ans;
+    const score = correct ? 100 : 40;
+
+    if (!done) {
+      const newCompleted = [...(user.completedSessions || []), session.n];
+      const newScores = [...(user.quizScores || []), score];
+      const newXP = (user.xp || 0) + session.xpReward + (correct ? 20 : 0);
+      update({
+        user: { ...user, completedSessions: newCompleted, quizScores: newScores, xp: newXP },
+        confetti: correct,
+      });
+      if (correct) {
+        setTimeout(() => update({ confetti: false }), 3000);
+        showToast(`🎉 Correct! +${session.xpReward + 20} XP earned!`);
+      } else {
+        showToast('Almost! Check the answer and retry next time.', 'error');
+      }
+    }
+  }
+
+  const tabs = ['📖 Concept', '🔬 Activity', '❓ Quiz'];
+
+  return (
+    <div className="page-content">
+      <button className="btn btn-ghost btn-sm" style={{marginBottom:16}} onClick={() => update({currentSessionIdx:null})}>
+        ← Back to Course
+      </button>
+
+      <div className="session-header">
+        <div className="session-number">Session {session.n} of 101 · {session.cat}</div>
+        <div className="session-title">{session.emoji} {session.title}</div>
+        <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+          <span className={`badge badge-${session.diff==='Beginner'?'green':session.diff==='Intermediate'?'yellow':'red'}`}>{session.diff}</span>
+          <span className="chip">⏱ {session.time} min</span>
+          <span className="chip">⚡ {session.xpReward} XP</span>
+          {done && <span className="badge badge-accent">✓ Completed</span>}
+        </div>
+      </div>
+
+      <div className="tabs">
+        {tabs.map((t,i) => (
+          <button key={i} className={`tab ${tab===i?'active':''}`} onClick={() => setTab(i)}>{t}</button>
+        ))}
+      </div>
+
+      {tab === 0 && (
+        <div className="anim-fadein">
+          <div className="card" style={{marginBottom:20}}>
+            <div style={{fontSize:15,fontWeight:700,color:'var(--accent)',marginBottom:12,display:'flex',gap:8,alignItems:'center'}}>
+              📖 Concept Explanation
+            </div>
+            <div className="concept-box">{session.concept}</div>
+            <div style={{fontSize:13,fontWeight:600,color:'var(--text2)',marginBottom:8,marginTop:16}}>🔢 Key Formula</div>
+            <div className="formula-box">{session.formula}</div>
+          </div>
+
+          <div className="card" style={{marginBottom:20}}>
+            <div style={{fontSize:15,fontWeight:700,color:'var(--accent)',marginBottom:12}}>🔌 Visual Diagram</div>
+            <div className="circuit-svg">
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:72,marginBottom:8}}>{session.emoji}</div>
+                <div style={{fontSize:13,color:'var(--text3)'}}>Circuit diagram for: {session.title}</div>
+              </div>
+            </div>
+            <div style={{fontSize:12,color:'var(--text3)',textAlign:'center',marginTop:8}}>
+              💡 Build this on your breadboard using the component list for this topic
+            </div>
+          </div>
+
+          <div style={{display:'flex',gap:12,justifyContent:'flex-end'}}>
+            <button className="btn btn-secondary" onClick={() => setTab(1)}>Next: Activity →</button>
+          </div>
+        </div>
+      )}
+
+      {tab === 1 && (
+        <div className="anim-fadein">
+          <div className="card">
+            <div style={{fontSize:15,fontWeight:700,color:'var(--accent)',marginBottom:16}}>🔬 Practical Activity</div>
+            <div className="activity-box">
+              <div className="activity-title">🛠️ Your Challenge</div>
+              <div style={{fontSize:14,lineHeight:1.7}}>{session.activity}</div>
+            </div>
+            <div style={{marginTop:20}}>
+              <div style={{fontSize:13,fontWeight:600,color:'var(--text2)',marginBottom:12}}>📝 Activity Notes</div>
+              <textarea className="input" rows={5} placeholder="Write your observations, results, or questions here..." style={{resize:'vertical'}} />
+            </div>
+            <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:16}}>
+              <button className="btn btn-secondary" onClick={() => setTab(0)}>← Concept</button>
+              <button className="btn btn-primary" onClick={() => setTab(2)}>Take Quiz →</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 2 && (
+        <div className="anim-fadein">
+          <div className="card">
+            <div style={{fontSize:15,fontWeight:700,color:'var(--accent)',marginBottom:20}}>❓ Mini Quiz</div>
+            <div style={{fontSize:16,fontWeight:600,marginBottom:20,lineHeight:1.5}}>{session.quiz.q}</div>
+            {session.quiz.opts.map((opt, i) => {
+              let cls = 'quiz-option';
+              if (submitted) {
+                if (i === session.quiz.ans) cls += ' correct';
+                else if (i === selectedOpt && i !== session.quiz.ans) cls += ' wrong';
+              } else if (i === selectedOpt) {
+                cls += ' selected';
+              }
+              return (
+                <div key={i} className={cls} onClick={() => !submitted && setSelectedOpt(i)}>
+                  <span style={{fontFamily:'var(--font-mono)',fontSize:12,width:20,textAlign:'center',color:'var(--text3)',flexShrink:0}}>
+                    {String.fromCharCode(65+i)}
+                  </span>
+                  {opt}
+                  {submitted && i === session.quiz.ans && <span style={{marginLeft:'auto'}}>✓</span>}
+                  {submitted && i === selectedOpt && i !== session.quiz.ans && <span style={{marginLeft:'auto'}}>✗</span>}
+                </div>
+              );
+            })}
+
+            {!submitted ? (
+              <button className="btn btn-primary" style={{marginTop:16}} onClick={submitQuiz} disabled={selectedOpt===null}>
+                Submit Answer
+              </button>
+            ) : (
+              <div style={{marginTop:16}}>
+                {selectedOpt === session.quiz.ans ? (
+                  <div style={{padding:'16px',background:'rgba(0,230,118,0.1)',border:'1px solid rgba(0,230,118,0.2)',borderRadius:'var(--radius-sm)',color:'var(--green)',fontWeight:600}}>
+                    🎉 Correct! You've mastered this concept!
+                  </div>
+                ) : (
+                  <div style={{padding:'16px',background:'rgba(255,23,68,0.1)',border:'1px solid rgba(255,23,68,0.2)',borderRadius:'var(--radius-sm)',color:'var(--red)'}}>
+                    ❌ Not quite — the correct answer was option {String.fromCharCode(65+session.quiz.ans)}: {session.quiz.opts[session.quiz.ans]}
+                  </div>
+                )}
+                {idx < sessions.length - 1 && (
+                  <button className="btn btn-primary" style={{marginTop:16}} onClick={() => {
+                    update({ currentSessionIdx: idx + 1 });
+                    setTab(0); setSelectedOpt(null); setSubmitted(false);
+                  }}>
+                    Next Session →
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+//  PROJECTS PAGE
+// ============================================================
+const PROJECTS = [
+  { id:1, diff:"Beginner", emoji:"💡", title:"LED Traffic Light", components:["3x LEDs","3x 220Ω resistors","Arduino Uno","Jumper wires","Breadboard"], desc:"Simulate a real traffic light with timed transitions and pedestrian button.", steps:["Connect red, yellow, green LEDs via resistors to pins 8, 9, 10","Program timing: red 5s, yellow 1s, green 5s","Add button on pin 2 for pedestrian crossing interrupt","Test and refine timing"], tags:["Arduino","Beginner","Circuit"] },
+  { id:2, diff:"Beginner", emoji:"🌡️", title:"Digital Thermometer", components:["DS18B20 sensor","16x2 LCD","10kΩ resistor","Arduino Uno","4.7kΩ pullup"], desc:"Read and display temperature in Celsius and Fahrenheit on an LCD.", steps:["Connect DS18B20 with 4.7kΩ pullup to pin 2","Wire LCD in 4-bit mode or use I2C adapter","Install OneWire and DallasTemperature libraries","Display formatted temperature on LCD"], tags:["Sensors","LCD","Beginner"] },
+  { id:3, diff:"Beginner", emoji:"🚨", title:"Intruder Alarm", components:["PIR sensor","Buzzer","LED","Arduino Uno","9V battery"], desc:"Motion-activated alarm system with LED and buzzer feedback.", steps:["Wire PIR to digital input pin 7","Connect buzzer to pin 8, LED to pin 9","Program: when PIR HIGH, activate alarm for 10 seconds","Add serial monitor logging with timestamp"], tags:["PIR","Alarm","Security"] },
+  { id:4, diff:"Intermediate", emoji:"📡", title:"IoT Weather Station", components:["ESP8266 NodeMCU","DHT22","BMP280","OLED 0.96\"","Breadboard"], desc:"Real-time weather monitoring with cloud dashboard on ThingSpeak.", steps:["Wire DHT22 and BMP280 to I2C/digital pins","Display readings on OLED","Connect ESP8266 to Wi-Fi","Send data to ThingSpeak every 60 seconds","Create dashboard with 4 graphs"], tags:["IoT","ESP8266","Sensors"] },
+  { id:5, diff:"Intermediate", emoji:"🤖", title:"Line Follower Robot", components:["Arduino Uno","L298N motor driver","2x DC motors","2x IR sensors","18650 battery","Chassis kit"], desc:"Autonomous robot that follows a black line using PID control.", steps:["Assemble chassis with motors and wheels","Wire L298N to Arduino (ENA,IN1-4,ENB)","Mount IR sensors at front","Implement proportional control algorithm","Tune Kp constant for smooth following"], tags:["Robotics","PID","Motors"] },
+  { id:6, diff:"Intermediate", emoji:"🔐", title:"RFID Door Lock", components:["MFRC522 RFID","Servo SG90","LED (red/green)","Buzzer","Arduino Uno","EEPROM"], desc:"Smart door lock with card enrollment, EEPROM storage, and LCD feedback.", steps:["Wire MFRC522 via SPI to Arduino","Connect servo to pin 9 as lock mechanism","Implement enrollment mode (hold button 3s)","Store UIDs in EEPROM, support 20 cards","Add access log to SD card"], tags:["RFID","Security","Advanced"] },
+  { id:7, diff:"Advanced", emoji:"⚖️", title:"Smart Digital Scale", components:["Load cell 5kg","HX711 amplifier","OLED display","ESP32","3D printed tray"], desc:"Precision digital scale with tare function and smartphone display via BLE.", steps:["Wire load cell to HX711 amplifier","Connect HX711 to ESP32 (DT, SCK pins)","Calibrate with known weights","Display on OLED + send via BLE","Build 3D printed or laser-cut tray"], tags:["Load Cell","ESP32","BLE"] },
+  { id:8, diff:"Advanced", emoji:"🌊", title:"Self-Balancing Robot", components:["MPU6050","2x N20 motors","DRV8835","ESP32","Li-Po 7.4V","Custom PCB"], desc:"Two-wheeled self-balancing robot using Kalman filter and PID control.", steps:["Design and print chassis","Wire MPU6050 via I2C to ESP32","Implement Kalman filter for angle","Tune PID: start Kp=10, Ki=0.1, Kd=0.5","Add BT remote control while balancing"], tags:["Robotics","IMU","PID","Advanced"] },
+  { id:9, diff:"Intermediate", emoji:"🎨", title:"RGB LED Matrix", components:["8x8 LED Matrix","MAX7219 driver","Arduino","NeoPixel strip 1m","Power supply 5V 10A"], desc:"Animated LED display system with pattern effects and audio reactivity.", steps:["Wire MAX7219 SPI to 8x8 matrix","Program Conway's Game of Life","Add NeoPixel strip for ambient lighting","Integrate sound sensor for beat detection","Create 10 custom animations"], tags:["LEDs","Display","NeoPixel"] },
+];
+
+function ProjectsPage() {
+  const [filter, setFilter] = useState('All');
+  const [selected, setSelected] = useState(null);
+  const diffs = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+  const filtered = filter === 'All' ? PROJECTS : PROJECTS.filter(p => p.diff === filter);
+
+  if (selected) {
+    const p = PROJECTS.find(x => x.id === selected);
+    return (
+      <div className="page-content">
+        <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)} style={{marginBottom:16}}>← All Projects</button>
+        <div className="session-header">
+          <div className="session-number">Project Guide</div>
+          <div className="session-title">{p.emoji} {p.title}</div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <span className={`badge badge-${p.diff==='Beginner'?'green':p.diff==='Intermediate'?'yellow':'red'}`}>{p.diff}</span>
+            {p.tags.map(t => <span key={t} className="chip">{t}</span>)}
+          </div>
+        </div>
+        <div className="grid-2">
+          <div>
+            <div className="card" style={{marginBottom:20}}>
+              <div style={{fontWeight:700,fontSize:15,marginBottom:12,color:'var(--accent)'}}>📋 Description</div>
+              <div style={{fontSize:14,lineHeight:1.7,color:'var(--text2)'}}>{p.desc}</div>
+            </div>
+            <div className="card">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:12,color:'var(--accent)'}}>🛒 Required Components</div>
+              {p.components.map((c,i) => (
+                <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:14}}>
+                  <span style={{color:'var(--text3)'}}>#{i+1}</span> {c}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card">
+            <div style={{fontWeight:700,fontSize:15,marginBottom:12,color:'var(--accent)'}}>🔧 Step-by-Step Guide</div>
+            {p.steps.map((step,i) => (
+              <div key={i} style={{display:'flex',gap:12,marginBottom:16}}>
+                <div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,229,255,0.15)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,flexShrink:0,fontFamily:'var(--font-mono)'}}>{i+1}</div>
+                <div style={{fontSize:14,lineHeight:1.6,paddingTop:4}}>{step}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-content">
+      <div className="section-head">
+        <div className="section-title">🔧 Project Library</div>
+        <div style={{fontSize:14,color:'var(--text2)'}}>{PROJECTS.length} projects available</div>
+      </div>
+      <div className="cat-pills">
+        {diffs.map(d => (
+          <button key={d} className={`cat-pill ${filter===d?'active':''}`} onClick={() => setFilter(d)}>
+            {d === 'All' ? 'All' : {Beginner:'🌱',Intermediate:'⚡',Advanced:'🔥'}[d]+' '+d}
+          </button>
+        ))}
+      </div>
+      <div className="grid-3">
+        {filtered.map(p => (
+          <div key={p.id} className="project-card" onClick={() => setSelected(p.id)}>
+            <div className="project-thumb">
+              <span style={{position:'relative',zIndex:1}}>{p.emoji}</span>
+            </div>
+            <div className="project-body">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,marginBottom:8}}>
+                <div style={{fontWeight:700,fontSize:15}}>{p.title}</div>
+                <span className={`badge badge-${p.diff==='Beginner'?'green':p.diff==='Intermediate'?'yellow':'red'}`}>{p.diff}</span>
+              </div>
+              <div style={{fontSize:13,color:'var(--text2)',marginBottom:12,lineHeight:1.5}}>{p.desc.substring(0,80)}...</div>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                {p.tags.slice(0,3).map(t => <span key={t} className="tag">{t}</span>)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  TOOLS PAGE
+// ============================================================
+const TOOLS = [
+  { id:'multimeter', name:'Multimeter', emoji:'🔌', desc:'A multimeter measures voltage (V), current (A), and resistance (Ω). Essential for debugging circuits, checking component values, and measuring battery level. Digital multimeters (DMMs) are accurate to 0.5% or better.', safety:['Never measure current in parallel — use the correct port','Set the range above expected value first','Discharge capacitors before measuring resistance','Avoid touching bare probes when measuring >50V'], experiment:'Set multimeter to DC voltage (20V range). Measure a 9V battery, AA battery, and phone charger output. Compare readings to labeled values.' },
+  { id:'breadboard', name:'Breadboard', emoji:'🍞', desc:'A solderless prototyping board with rows of interconnected holes. Middle section: rows of 5 connected horizontally. Power rails: columns connected vertically. Used for rapid prototyping without soldering.', safety:['Never exceed the current rating (1A per row)','Keep wires short and tidy to avoid confusion','Mark power rails clearly (+/-)','Do NOT use on live AC mains circuits'], experiment:'Build a voltage divider: connect 10kΩ and 10kΩ resistors in series. Measure the midpoint voltage—should be half of supply.' },
+  { id:'arduino', name:'Arduino', emoji:'🎯', desc:'Arduino is an open-source microcontroller platform with simple IDE. ATmega328P MCU, 14 digital I/O pins, 6 analog inputs, USB programming. Powered by USB or external supply (7-12V). Perfect for beginners and prototyping.', safety:['Use external supply max 12V to avoid overheating','Limit total I/O current to 200mA','Add current-limiting resistors to LEDs','Never connect VIN to USB power simultaneously'], experiment:'Blink built-in LED (pin 13): void setup(){pinMode(13,OUTPUT);} void loop(){digitalWrite(13,HIGH);delay(1000);digitalWrite(13,LOW);delay(1000);}' },
+  { id:'sensors', name:'Sensor Kit', emoji:'📡', desc:'Sensors convert physical phenomena (light, temperature, motion, sound) into electrical signals the MCU can read. Analog sensors output variable voltage; digital sensors use protocols like I2C, SPI, or 1-Wire.', safety:['Check sensor voltage levels (3.3V vs 5V)','Use level shifters for 3.3V sensors with 5V MCUs','Follow sensor warm-up requirements','Keep sensors away from extreme temperatures'], experiment:'Read analog sensor: connect a 10kΩ potentiometer to A0. In loop: Serial.println(analogRead(A0)); Open Serial Monitor at 9600 baud.' },
+  { id:'oscilloscope', name:'Oscilloscope', emoji:'📈', desc:'An oscilloscope visualizes electrical signals over time. Shows waveform shape, frequency, amplitude, and phase. Essential for debugging communication protocols, audio circuits, and analyzing signal noise.', safety:['Max input voltage: check probe rating (typically 300V)','Use attenuator probes for high voltages','Ground yourself when working with sensitive circuits','Never measure AC mains directly without isolation'], experiment:'Connect probe to Arduino pin 13 with Blink sketch running. Observe the 1Hz square wave. Measure: period=2s, frequency=0.5Hz, amplitude=5V.' },
+  { id:'soldering', name:'Soldering Iron', emoji:'🔥', desc:'A soldering iron melts solder to join electronic components to PCBs. Temperature-controlled stations (350-400°C) give the best results. Use flux to improve solder flow. Tin the iron tip before use.', safety:['Never touch the heated element','Work in well-ventilated area — solder fumes are toxic','Keep wet sponge nearby for tip cleaning','Rest iron in stand when not in use','Wash hands after handling solder (lead content)'], experiment:'Practice on a through-hole PCB kit. Goal: solder 20 perfect shiny joints. Review each joint under magnification before checking connections with multimeter.' },
+];
+
+function ToolsPage() {
+  const [selected, setSelected] = useState(null);
+  if (selected) {
+    const t = TOOLS.find(x => x.id === selected);
+    return (
+      <div className="page-content">
+        <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)} style={{marginBottom:16}}>← All Tools</button>
+        <div className="session-header">
+          <div className="session-number">Tool Guide</div>
+          <div className="session-title">{t.emoji} {t.name}</div>
+        </div>
+        <div className="grid-2">
+          <div>
+            <div className="card" style={{marginBottom:16}}>
+              <div style={{textAlign:'center',fontSize:80,padding:'20px 0'}}>{t.emoji}</div>
+            </div>
+            <div className="card">
+              <div style={{fontWeight:700,color:'var(--accent)',marginBottom:12}}>📖 What It Does</div>
+              <div style={{fontSize:14,lineHeight:1.7,color:'var(--text2)'}}>{t.desc}</div>
+            </div>
+          </div>
+          <div>
+            <div className="card" style={{marginBottom:16}}>
+              <div style={{fontWeight:700,color:'var(--red)',marginBottom:12}}>⚠️ Safety Tips</div>
+              {t.safety.map((s,i) => (
+                <div key={i} style={{display:'flex',gap:10,marginBottom:10,fontSize:14}}>
+                  <span style={{color:'var(--red)',flexShrink:0}}>⚠</span>{s}
+                </div>
+              ))}
+            </div>
+            <div className="activity-box">
+              <div className="activity-title">🧪 Beginner Experiment</div>
+              <div style={{fontSize:14,lineHeight:1.7}}>{t.experiment}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="page-content">
+      <div className="section-head">
+        <div className="section-title">🔬 Electronics Tool Library</div>
+      </div>
+      <div className="grid-3">
+        {TOOLS.map(t => (
+          <div key={t.id} className="tool-card" onClick={() => setSelected(t.id)}>
+            <div className="tool-thumb">{t.emoji}</div>
+            <div className="tool-body">
+              <div style={{fontWeight:700,fontSize:16,marginBottom:8}}>{t.name}</div>
+              <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5}}>{t.desc.substring(0,90)}...</div>
+              <button className="btn btn-secondary btn-sm" style={{marginTop:12}}>View Guide →</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  DISCUSSION PAGE
+// ============================================================
+function DiscussionPage() {
+  const { state, update, showToast } = useApp();
+  const { posts, user } = state;
+  const [room, setRoom] = useState('All');
+  const [newPost, setNewPost] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const rooms = ['All', ...TOPICS.map(t => t.cat)];
+
+  const filtered = room === 'All' ? posts : posts.filter(p => p.roomId === room);
+
+  function addPost() {
+    if (!newPost.trim()) return;
+    const post = {
+      id: Date.now(), userId: user.id, userName: user.name,
+      avatar: user.name?.charAt(0) || 'U',
+      roomId: room === 'All' ? 'General' : room,
+      content: newPost, upvotes: 0, replies: [],
+      createdAt: Date.now()
+    };
+    update({ posts: [post, ...posts] });
+    setNewPost('');
+    showToast('Post published!');
+  }
+
+  function addReply(postId) {
+    if (!replyText.trim()) return;
+    const reply = { id: Date.now(), userId: user.id, userName: user.name, avatar: user.name?.charAt(0)||'U', content: replyText, upvotes: 0, createdAt: Date.now() };
+    update({ posts: posts.map(p => p.id === postId ? {...p, replies:[...p.replies, reply]} : p) });
+    setReplyTo(null); setReplyText('');
+    showToast('Reply added!');
+  }
+
+  function upvote(postId, replyId=null) {
+    update({ posts: posts.map(p => {
+      if (p.id !== postId) return p;
+      if (!replyId) return {...p, upvotes: p.upvotes + 1};
+      return {...p, replies: p.replies.map(r => r.id===replyId ? {...r, upvotes:r.upvotes+1} : r)};
+    })});
+  }
+
+  function timeAgo(ts) {
+    const s = Math.floor((Date.now()-ts)/1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return `${Math.floor(s/60)}m ago`;
+    if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+    return `${Math.floor(s/86400)}d ago`;
+  }
+
+  return (
+    <div className="page-content">
+      <div className="section-head">
+        <div className="section-title">💬 Community Discussion</div>
+        <span className="badge badge-green">🟢 Live</span>
+      </div>
+
+      {/* Room Filter */}
+      <div className="cat-pills">
+        {rooms.map(r => (
+          <button key={r} className={`cat-pill ${room===r?'active':''}`} onClick={() => setRoom(r)}>{r}</button>
+        ))}
+      </div>
+
+      {/* New Post */}
+      <div className="card" style={{marginBottom:24}}>
+        <div style={{fontWeight:600,marginBottom:12,fontSize:14}}>Ask a Question or Share Something</div>
+        <textarea className="input" rows={3} placeholder={`Post in ${room === 'All' ? 'General' : room}...`} value={newPost} onChange={e => setNewPost(e.target.value)} style={{resize:'vertical',marginBottom:12}} />
+        <div style={{display:'flex',justifyContent:'flex-end'}}>
+          <button className="btn btn-primary btn-sm" onClick={addPost}>Post →</button>
+        </div>
+      </div>
+
+      {/* Posts */}
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">💬</div>
+          <div className="empty-title">No discussions yet</div>
+          <div className="empty-sub">Be the first to post in this room!</div>
+        </div>
+      ) : filtered.map(post => (
+        <div key={post.id} className="post-card">
+          <div className="post-header">
+            <div className="avatar">{post.avatar}</div>
+            <div>
+              <div style={{fontSize:14,fontWeight:600}}>{post.userName}</div>
+              <div className="post-meta">{post.roomId} · {timeAgo(post.createdAt)}</div>
+            </div>
+          </div>
+          <div style={{fontSize:14,lineHeight:1.6}}>{post.content}</div>
+          <div className="post-actions">
+            <button className="post-action-btn" onClick={() => upvote(post.id)}>▲ {post.upvotes}</button>
+            <button className="post-action-btn" onClick={() => setReplyTo(replyTo===post.id?null:post.id)}>💬 {post.replies.length} Replies</button>
+          </div>
+
+          {/* Replies */}
+          {post.replies.length > 0 && (
+            <div style={{marginTop:12,paddingLeft:16,borderLeft:'2px solid var(--border)'}}>
+              {post.replies.map(r => (
+                <div key={r.id} style={{marginBottom:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <div className="avatar" style={{width:24,height:24,fontSize:11}}>{r.avatar}</div>
+                    <span style={{fontSize:13,fontWeight:600}}>{r.userName}</span>
+                    <span className="post-meta">{timeAgo(r.createdAt)}</span>
+                  </div>
+                  <div style={{fontSize:13,lineHeight:1.6,marginLeft:32}}>{r.content}</div>
+                  <button className="post-action-btn" style={{marginLeft:32,marginTop:4}} onClick={() => upvote(post.id, r.id)}>▲ {r.upvotes}</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Reply Box */}
+          {replyTo === post.id && (
+            <div style={{marginTop:12}}>
+              <textarea className="input" rows={2} placeholder="Write a reply..." value={replyText} onChange={e => setReplyText(e.target.value)} style={{resize:'none',marginBottom:8}} />
+              <div style={{display:'flex',gap:8}}>
+                <button className="btn btn-primary btn-sm" onClick={() => addReply(post.id)}>Reply</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setReplyTo(null)}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+//  LEADERBOARD PAGE
+// ============================================================
+function LeaderboardPage() {
+  const { state } = useApp();
+  const { user } = state;
+  const [tab, setTab] = useState(0);
+  const tabs = ['🌍 Global', '📅 Weekly', '👥 Age Group'];
+
+  // Build leaderboard with current user injected
+  const userScore = calculateLearningScore({
+    xp: user?.xp || 0,
+    completedSessions: user?.completedSessions?.length || 0,
+    quizAccuracy: user?.quizScores?.length > 0 ? Math.round(user.quizScores.reduce((a,b)=>a+b,0)/user.quizScores.length) : 0,
+    streakDays: user?.streak || 0,
+  });
+
+  const board = [
+    ...MOCK_USERS.map((u,i) => ({ ...u, score: calculateLearningScore({xp:u.xp,completedSessions:u.completed,quizAccuracy:u.accuracy,streakDays:u.streak}), isMe:false })),
+    { name: user?.name || 'You', xp: user?.xp||0, completed: user?.completedSessions?.length||0, accuracy: 80, streak: user?.streak||0, score: userScore, isMe: true, age: user?.age||20 }
+  ].sort((a,b) => b.score - a.score);
+
+  const weeklyBoard = [...board].sort((a,b) => b.xp - a.xp);
+  const userAge = user?.age || 20;
+  const ageGroupBoard = board.filter(u => Math.abs(u.age - userAge) <= 10);
+
+  const boards = [board, weeklyBoard, ageGroupBoard];
+  const current = boards[tab];
+
+  function rankIcon(i) {
+    if (i === 0) return { cls:'gold', icon:'🥇' };
+    if (i === 1) return { cls:'silver', icon:'🥈' };
+    if (i === 2) return { cls:'bronze', icon:'🥉' };
+    return { cls:'', icon: null };
+  }
+
+  const myRank = current.findIndex(u => u.isMe) + 1;
+
+  return (
+    <div className="page-content">
+      <div className="section-head">
+        <div className="section-title">🏆 Leaderboard</div>
+        <div style={{fontSize:14,color:'var(--text2)'}}>Your rank: #{myRank}</div>
+      </div>
+
+      {/* Score Algorithm Explanation */}
+      <div className="card card-accent" style={{marginBottom:24}}>
+        <div style={{fontSize:14,fontWeight:700,marginBottom:8,color:'var(--accent)'}}>📊 Learning Score Formula</div>
+        <div className="formula-box" style={{fontSize:13}}>
+          Score = (Sessions/101 × 400) + (Quiz Accuracy × 3) + (Streak Days × 10) + (XP × 0.1)
+        </div>
+        <div style={{fontSize:13,color:'var(--text2)',marginTop:8}}>Consistency and accuracy matter more than speed alone!</div>
+      </div>
+
+      <div className="tabs">
+        {tabs.map((t,i) => <button key={i} className={`tab ${tab===i?'active':''}`} onClick={() => setTab(i)}>{t}</button>)}
+      </div>
+
+      {/* My Position */}
+      <div className="card" style={{marginBottom:16,borderColor:'rgba(0,229,255,0.3)'}}>
+        <div style={{fontSize:12,color:'var(--text2)',marginBottom:8,textTransform:'uppercase',letterSpacing:'1px',fontWeight:600}}>Your Position</div>
+        <div style={{display:'flex',alignItems:'center',gap:16}}>
+          <div style={{fontFamily:'var(--font-mono)',fontSize:28,fontWeight:700,color:'var(--accent)',minWidth:60}}>#{myRank}</div>
+          <div className="avatar" style={{width:44,height:44,fontSize:18}}>{user?.name?.charAt(0)||'U'}</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700}}>{user?.name}</div>
+            <div style={{fontSize:12,color:'var(--text2)'}}>Score: {userScore.toLocaleString()} · {user?.completedSessions?.length||0} sessions · 🔥{user?.streak}d</div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontFamily:'var(--font-mono)',fontSize:20,fontWeight:700,color:'var(--accent)'}}>{userScore.toLocaleString()}</div>
+            <div style={{fontSize:11,color:'var(--text3)'}}>points</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Leaderboard List */}
+      <div className="card">
+        {current.slice(0,10).map((entry, i) => {
+          const { cls, icon } = rankIcon(i);
+          return (
+            <div key={i} className={`rank-row ${entry.isMe?'me':''}`}>
+              <div className={`rank-num ${cls}`}>{icon || `#${i+1}`}</div>
+              <div className="avatar">{entry.name.charAt(0)}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:600}}>{entry.name} {entry.isMe && <span className="badge badge-accent" style={{fontSize:10}}>YOU</span>}</div>
+                <div style={{fontSize:12,color:'var(--text2)'}}>
+                  {entry.completed} sessions · {entry.accuracy}% accuracy · 🔥{entry.streak}d
+                </div>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div style={{fontFamily:'var(--font-mono)',fontSize:16,fontWeight:700,color:i<3?['var(--yellow)','var(--text2)','var(--accent2)'][i]:'var(--text)'}}>
+                  {entry.score.toLocaleString()}
+                </div>
+                <div style={{fontSize:11,color:'var(--text3)'}}>{entry.xp.toLocaleString()} XP</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  SETTINGS PAGE (Theme Customization)
+// ============================================================
+function SettingsPage() {
+  const { state, update, showToast } = useApp();
+  const { user, theme } = state;
+  const accents = [
+    '#00e5ff','#00e676','#ffd600','#ff6b35','#d500f9','#ff1744','#2979ff','#ff6d00','#00bfa5','#aa00ff',
+  ];
+
+  function setAccent(color) {
+    const newTheme = { ...theme, accent: color };
+    update({ theme: newTheme, user: { ...user, theme: newTheme } });
+    showToast('Theme updated!');
+  }
+  function setMode(mode) {
+    const newTheme = { ...theme, mode };
+    update({ theme: newTheme, user: { ...user, theme: newTheme } });
+    showToast(`${mode === 'dark' ? '🌙 Dark' : '☀️ Light'} mode enabled!`);
+  }
+
+  return (
+    <div className="page-content">
+      <div className="grid-2" style={{gap:24,alignItems:'start'}}>
+        {/* Profile */}
+        <div>
+          <div className="section">
+            <div className="section-title" style={{marginBottom:16}}>👤 Profile</div>
+            <div className="card">
+              <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:24}}>
+                <div className="avatar" style={{width:64,height:64,fontSize:28}}>{user?.name?.charAt(0)||'U'}</div>
+                <div>
+                  <div style={{fontSize:20,fontWeight:700}}>{user?.name}</div>
+                  <div style={{fontSize:14,color:'var(--text2)'}}>{user?.email}</div>
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                {[
+                  { label:'Age', val:user?.age || 'Not set' },
+                  { label:'Level', val:user?.level || 'Not set' },
+                  { label:'Goal', val:user?.goal || 'Not set' },
+                  { label:'Joined', val:user?.joined || 'Today' },
+                  { label:'XP Earned', val:(user?.xp||0).toLocaleString() },
+                  { label:'Sessions', val:`${user?.completedSessions?.length||0} / 101` },
+                ].map(item => (
+                  <div key={item.label} style={{background:'var(--bg3)',padding:12,borderRadius:8}}>
+                    <div style={{fontSize:11,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>{item.label}</div>
+                    <div style={{fontWeight:600,fontSize:14}}>{item.val}</div>
+                  </div>
+                ))}
+              </div>
+              <button className="btn btn-secondary" style={{marginTop:16,width:'100%',justifyContent:'center'}} onClick={() => update({screen:'onboard',onboardStep:0})}>
+                🔄 Redo Setup
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Theme */}
+        <div>
+          <div className="section">
+            <div className="section-title" style={{marginBottom:16}}>🎨 Theme Customization</div>
+            <div className="card">
+              <div style={{marginBottom:20}}>
+                <div className="label" style={{marginBottom:10}}>Display Mode</div>
+                <div style={{display:'flex',gap:10}}>
+                  <button className={`btn ${theme.mode==='dark'?'btn-primary':'btn-secondary'}`} onClick={() => setMode('dark')}>🌙 Dark</button>
+                  <button className={`btn ${theme.mode==='light'?'btn-primary':'btn-secondary'}`} onClick={() => setMode('light')}>☀️ Light</button>
+                </div>
+              </div>
+              <div>
+                <div className="label" style={{marginBottom:12}}>Accent Color</div>
+                <div className="swatches">
+                  {accents.map(c => (
+                    <div key={c} className={`color-swatch ${theme.accent===c?'active':''}`}
+                      style={{background:c,boxShadow:theme.accent===c?`0 0 0 2px var(--bg),0 0 0 4px ${c}`:'none'}}
+                      onClick={() => setAccent(c)} />
+                  ))}
+                </div>
+                <div style={{marginTop:16,display:'flex',gap:12,alignItems:'center'}}>
+                  <div style={{fontSize:13,color:'var(--text2)'}}>Or pick custom:</div>
+                  <input type="color" value={theme.accent} onChange={e => setAccent(e.target.value)}
+                    style={{width:40,height:32,border:'none',borderRadius:6,cursor:'pointer',background:'none'}} />
+                </div>
+              </div>
+              <div className="divider" />
+              <div style={{fontSize:14,color:'var(--text2)'}}>Preview:</div>
+              <div style={{marginTop:12,display:'flex',gap:10,flexWrap:'wrap'}}>
+                <button className="btn btn-primary">Primary Button</button>
+                <span className="badge badge-accent">Badge</span>
+                <div className="progress-wrap" style={{flex:1,minWidth:100}}>
+                  <div className="progress-fill" style={{width:'65%'}} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="section">
+            <div className="section-title" style={{marginBottom:16}}>🔔 Preferences</div>
+            <div className="card">
+              {[
+                { label:'Daily Reminder', desc:'Get notified to maintain streak', val:true },
+                { label:'Quiz Hints', desc:'Show hints for difficult questions', val:false },
+                { label:'Sound Effects', desc:'Play sounds on completion', val:true },
+              ].map(pref => (
+                <div key={pref.label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid var(--border)'}}>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:600}}>{pref.label}</div>
+                    <div style={{fontSize:12,color:'var(--text3)'}}>{pref.desc}</div>
+                  </div>
+                  <div style={{width:44,height:24,borderRadius:12,background:pref.val?'var(--accent)':'var(--bg3)',cursor:'pointer',position:'relative',transition:'background 0.2s'}}>
+                    <div style={{width:20,height:20,background:'white',borderRadius:'50%',position:'absolute',top:2,left:pref.val?22:2,transition:'left 0.2s'}} />
+                  </div>
+                </div>
+              ))}
+              <button className="btn btn-danger" style={{marginTop:16,width:'100%',justifyContent:'center'}} onClick={() => {
+                localStorage.removeItem(STORAGE_KEY);
+                update({ user:null, screen:'auth' });
+              }}>
+                🗑️ Reset All Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  TOAST NOTIFICATION
+// ============================================================
+function Toast() {
+  const { state } = useApp();
+  if (!state.toast) return null;
+  const { msg, type } = state.toast;
+  return (
+    <div className={`toast ${type}`}>
+      <span>{type === 'success' ? '✅' : '❌'}</span>
+      <span>{msg}</span>
+    </div>
+  );
+}
+
+// ============================================================
+//  CONFETTI CELEBRATION
+// ============================================================
+function Confetti() {
+  const { state } = useApp();
+  if (!state.confetti) return null;
+  return (
+    <div className="confetti-overlay">
+      <div className="confetti-text">🎉 CORRECT! 🎉</div>
+      <div style={{fontSize:20,color:'var(--text2)'}}>+XP earned! Keep it up!</div>
+    </div>
+  );
+}
+
+// ============================================================
+//  MAIN APP
+// ============================================================
+function MainApp() {
+  const { state } = useApp();
+  const pages = {
+    dashboard: <Dashboard />,
+    sessions: <SessionsPage />,
+    projects: <ProjectsPage />,
+    tools: <ToolsPage />,
+    discussion: <DiscussionPage />,
+    leaderboard: <LeaderboardPage />,
+    settings: <SettingsPage />,
+  };
+
+  return (
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        <Topbar />
+        {pages[state.activePage] || <Dashboard />}
+      </div>
+      <Toast />
+      <Confetti />
+    </div>
+  );
+}
+
+// ============================================================
+//  ROOT ROUTER
+// ============================================================
+function App() {
+  const { state } = useApp();
+  switch(state.screen) {
+    case 'auth':    return <AuthPage />;
+    case 'onboard': return <OnboardPage />;
+    case 'app':     return <MainApp />;
+    default:        return <AuthPage />;
+  }
+}
+
+// ============================================================
+//  MOUNT
+// ============================================================
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<AppProvider><App /></AppProvider>);
+</script>
+</body>
+</html>
